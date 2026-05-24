@@ -1,0 +1,40 @@
+{
+  "name": "data-semantic",
+  "version": "0.0.1",
+  "description": "AI-native semantic semantic runtime for modern web.",
+  "keywords": ["data semantic", "cml", "data semantic protocol", "ai-native","context markup language"],
+  "type": "module",
+
+  "main": "./dist/data-semantic.umd.js",
+  "module": "./dist/data-semantic.es.js",
+
+  "exports": {
+    ".": {
+      "import": "./dist/data-semantic.es.js",
+      "default": "./dist/data-semantic.umd.js"
+    }
+  },
+
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "vite build"
+  },
+
+  "devDependencies": {
+    "vite": "^6.0.0"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doc-war/data-semantic"
+  },
+  "homepage": "https://doc-war.com/CML",
+
+  "license": "MIT"
+}
