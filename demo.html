@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" data-semantic-content="seo.description">
+  <title>data-semantic 框架演示</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #222; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #4f46e5; padding-bottom: 8px; }
+    h2 { color: #4f46e5; margin-top: 32px; }
+    code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 12px 0; }
+    input, select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    #hint { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+    /* 触发元素悬停/聚焦显示 tooltip */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    #my-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      background: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .tooltip-wrap:hover #my-tooltip,
+    .tooltip-wrap:focus-within #my-tooltip {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>data-semantic 语义渲染框架</h1>
+  <p><code>data-semantic</code> 通过声明式属性把数据源绑定到 DOM，无需手写 DOM 操作。</p>
+
+  <!-- ======== 1. 文本绑定 data-semantic（支持嵌套路径） ======== -->
+  <h2>1. 文本绑定 data-semantic</h2>
+  <div class="card">
+    <p data-semantic="page.title">（来自 data-semantic="page.title"）</p>
+    <p>你好，<strong data-semantic="user.name">（名字）</strong>！</p>
+    <p>城市：<span data-semantic="user.addresses.0.city">（城市）</span></p>
+  </div>
+
+  <!-- ======== 2. 属性绑定 data-semantic-{attr} ======== -->
+  <h2>2. 属性绑定 data-semantic-{attr}（白名单）</h2>
+  <div class="card">
+    <p>
+      placeholder：<input data-semantic-placeholder="form.placeholder" placeholder="（占位符）">
+    </p>
+    <p>
+      alt / src：
+      <img data-semantic-src="user.avatar" data-semantic-alt="user.name" width="48" height="48">
+    </p>
+    <p>
+      title：<span data-semantic-title="page.title">（鼠标悬停查看 title）</span>
+    </p>
+    <p>
+      aria-label：<button data-semantic-aria-label="form.buttonLabel" aria-label="（标签）">按钮</button>
+    </p>
+    <p>
+      value：<input data-semantic-value="form.inputValue" value="（值）">
+    </p>
+    <p>
+      content（meta 标签）：head 中
+      <code>&lt;meta name="description" data-semantic-content="seo.description"&gt;</code>
+      的 content 已被渲染
+    </p>
+  </div>
+
+  <!-- ======== 3. 自定义 data-* 透传 ======== -->
+  <h2>3. 自定义 data-* 透传</h2>
+  <div class="card">
+    <p>
+      <span data-semantic-data-role="user.role">（角色）</span>
+      <code>&lt;span data-semantic-data-role="user.role"&gt;</code> → <code>data-role</code> 属性
+    </p>
+  </div>
+
+  <!-- ======== 4. 国际化（data-semantic 协议典型应用） ======== -->
+  <h2>4. 国际化示例</h2>
+  <div class="card" id="i18n-card">
+    <select id="lang-select">
+      <option value="zh">🇨🇳 简体中文</option>
+      <option value="en">🇺🇸 English</option>
+    </select>
+    <p data-semantic="hello">（hello）</p>
+    <p data-semantic="desc">（desc）</p>
+  </div>
+
+  <!-- ======== 5. AI 流式输出（细粒度增量渲染） ======== -->
+  <h2>5. AI 流式输出（细粒度增量渲染）</h2>
+  <div class="card">
+    <p>模拟 AI 流式返回：小块数据高频注入，<code>render</code> 只更新本次涉及的槽位。</p>
+    <p>回答：<span data-semantic="stream.answer">（等待流式输出…）</span></p>
+    <p>状态：<span data-semantic="stream.status">（状态）</span></p>
+    <button id="stream-btn">▶ 开始流式输出</button>
+  </div>
+
+  <!-- 引入运行时（UMD 构建产物，需先 npm run build） -->
+  <script src="./dist/runtime.umd.js"></script>
+
+  <script>
+    // 未构建 dist 时的友好提示（双击 file:// 打开也可见）
+    if (typeof DataSemantic === 'undefined') {
+      document.body.insertAdjacentHTML('afterbegin',
+        '<p id="hint">未找到 dist/runtime.umd.js，请先运行 <code>npm run build</code> 生成构建产物后再双击打开本页。</p>');
+    } else {
+      // ===== 1-3 演示数据（渲染一次即可） =====
+      var avatarSvg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" rx="8" fill="#4f46e5"/><text x="24" y="30" font-size="18" fill="white" text-anchor="middle">张三</text></svg>');
+      DataSemantic.render({
+        page: { title: '欢迎使用 data-semantic' },
+        user: {
+          name: '张三',
+          avatar: 'data:image/svg+xml;utf8,' + avatarSvg,
+          addresses: [{ city: '北京' }],
+          role: 'admin'
+        },
+        form: {
+          placeholder: '请输入关键词',
+          inputValue: '默认值',
+          buttonLabel: '提交表单'
+        },
+        seo: { description: 'data-semantic：AI 原生语义渲染框架' }
+      });
+
+      // ===== 4. 国际化：使用独立实例，互不干扰 =====
+      var locales = {
+        zh: { hello: '你好，世界', desc: '欢迎使用 DataSemantic 框架' },
+        en: { hello: 'Hello, World', desc: 'Welcome to DataSemantic Framework' }
+      };
+      var i18n = new DataSemanticRuntime({ root: document.getElementById('i18n-card') });
+      var langSelect = document.getElementById('lang-select');
+      var applyLang = function () {
+        i18n.render(locales[langSelect.value]);
+      };
+      applyLang();
+      langSelect.addEventListener('change', applyLang);
+
+      // ===== 5. AI 流式输出：小块数据高频注入 =====
+      var streamBtn = document.getElementById('stream-btn');
+      var streamTimer = null;
+      var streamIdx = 0;
+      var streamText = 'data-semantic 是面向 AI 语义的声明式渲染框架，支持细粒度增量渲染与流式输出。';
+      streamBtn.addEventListener('click', function () {
+        if (streamTimer) { clearInterval(streamTimer); streamTimer = null; }
+        streamIdx = 0;
+        streamBtn.disabled = true;
+        DataSemantic.render({ stream: { status: '流式中…' } });
+        streamTimer = setInterval(function () {
+          streamIdx += 3;
+          DataSemantic.render({ stream: { answer: streamText.slice(0, streamIdx) } });
+          if (streamIdx >= streamText.length) {
+            clearInterval(streamTimer);
+            streamTimer = null;
+            streamBtn.disabled = false;
+            DataSemantic.render({ stream: { status: '完成' } });
+          }
+        }, 80);
+      });
+    }
+  </script>
+  <!-- 触发元素，通过 aria-describedby 关联 tooltip -->
+  <div class="tooltip-wrap">
+    <button aria-describedby="my-tooltip">悬停或聚焦查看</button>
+
+    <!-- 工具提示容器，拥有 role="tooltip" 和对应的 id -->
+    <div id="my-tooltip" role="tooltip">
+      这是提供额外信息的提示文本。
+    </div>
+  </div>
+
+</body>
+</html>
