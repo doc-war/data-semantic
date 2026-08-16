@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" data-semantic-content="seo.description">
+  <title>data-semantic 框架演示</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 16px; color: #222; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #4f46e5; padding-bottom: 8px; }
+    code { background: #eef2ff; padding: 2px 6px; border-radius: 4px; }
+    input, select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    #hint { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+
+    /* 左右两栏布局 */
+    .layout { display: flex; gap: 24px; align-items: flex-start; }
+
+    /* 左栏分组示例列表 */
+    .examples { flex: 0 0 240px; display: flex; flex-direction: column; gap: 8px; }
+    .group-title {
+      margin: 8px 0 0;
+      padding: 0 2px;
+      color: #9ca3af;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+    .group-title:first-child { margin-top: 0; }
+    .example-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      color: #333;
+    }
+    .example-item .icon { display: flex; align-items: center; flex: 0 0 auto; color: #4f46e5; }
+    .example-item:hover { border-color: #4f46e5; }
+    .example-item.active { background: #eef2ff; border-color: #4f46e5; }
+
+    /* 右栏详情面板 */
+    .panel { flex: 1; min-width: 0; }
+    .panel-title { margin: 0 0 8px; color: #4f46e5; }
+    .code-block { margin-bottom: 16px; }
+    .code-block h4 { margin: 0 0 8px; color: #666; font-size: 14px; }
+
+    /* 代码块（CKD 风格：暗色 surface + 顶栏 + token 高亮） */
+    .code-block .code-body {
+      background: #161a22;
+      border: 1px solid rgba(232, 230, 224, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .code-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(232, 230, 224, 0.1);
+      font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+      font-size: 11px;
+      color: #8a8f98;
+    }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid rgba(232, 230, 224, 0.18);
+      color: #8a8f98;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+      cursor: pointer;
+      transition: all .15s;
+      line-height: 1;
+    }
+    .copy-btn:hover { color: #e8e6e0; border-color: #8a8f98; }
+    .code-block pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e8e6e0;
+    }
+    .code-block pre, .code-block code { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; }
+    .code-block pre code { background: transparent; padding: 0; border-radius: 0; }
+    .tk-kw { color: #4fb8b0; }
+    .tk-str { color: #c9974c; }
+    .tk-cm { color: #5e636c; }
+    .tk-num { color: #9fb6e8; }
+    .tk-fn { color: #9fb6e8; }
+    .tk-tag { color: #9fb6e8; }
+    .tk-attr { color: #8a8f98; }
+
+    #demo-result { border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+    #demo-result p { margin: 8px 0; }
+    #demo-result .muted { color: #6b7280; font-size: 13px; }
+    #demo-result button { cursor: pointer; padding: 4px 10px; border: 1px solid #c7d2fe; background: #eef2ff; color: #4f46e5; border-radius: 6px; font-size: 13px; }
+    #demo-result button:hover { background: #e0e7ff; }
+
+    .orthogonal-list {
+      margin: 10px 0 0;
+      padding: 10px 14px 10px 34px;
+      font-size: 13px;
+      line-height: 1.9;
+      color: #4f46e5;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 6px;
+      list-style: disc;
+    }
+    .orthogonal-list code { background: transparent; padding: 0; color: inherit; }
+
+    /* 触发元素悬停/聚焦显示 tooltip */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    #demo-aria-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      background: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .tooltip-wrap:hover #demo-aria-tooltip,
+    .tooltip-wrap:focus-within #demo-aria-tooltip {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>data-semantic 语义渲染框架</h1>
+  <p><code>data-semantic</code> 通过声明式属性把数据源绑定到 DOM，无需手写 DOM 操作。</p>
+  <ul class="orthogonal-list">
+    <li>填什么内容 → <code>data-semantic</code> 绑定 <code>textContent</code></li>
+    <li>填到哪里 → <code>data-semantic-{attr}</code> 绑定 DOM 属性（白名单内）</li>
+    <li>要不要显示 → <code>data-semantic-display</code> 绑定 <code>style.display</code></li>
+  </ul>
+
+  <!-- 左右两栏：左栏分组示例列表，右栏声明代码 / 渲染逻辑 / 渲染结果 -->
+  <main class="layout">
+    <aside class="examples" id="examples"></aside>
+    <section class="panel">
+      <h3 class="panel-title" id="panel-title"></h3>
+      <div class="code-block">
+        <h4>声明代码</h4>
+        <div class="code-body">
+          <div class="code-head">
+            <span>HTML</span>
+            <button type="button" class="copy-btn" data-copy-target="decl-code">复制</button>
+          </div>
+          <pre><code id="decl-code"></code></pre>
+        </div>
+      </div>
+      <div class="code-block">
+        <h4>渲染逻辑</h4>
+        <div class="code-body">
+          <div class="code-head">
+            <span>JavaScript</span>
+            <button type="button" class="copy-btn" data-copy-target="logic-code">复制</button>
+          </div>
+          <pre><code id="logic-code"></code></pre>
+        </div>
+      </div>
+      <div class="code-block">
+        <h4>渲染结果</h4>
+        <div id="demo-result"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 引入运行时（unpkg CDN，发布 npm 包后生效） -->
+  <script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"></script>
+
+  <script>
+    // 统一的「代码」图标（内联 SVG：</>）
+    var CODE_ICON =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>';
+
+    // 未从 CDN 加载到运行时仅提示，代码浏览不受影响
+    var dataSemanticAvailable = typeof DataSemantic !== 'undefined';
+    if (!dataSemanticAvailable) {
+      document.body.insertAdjacentHTML('afterbegin',
+        '<p id="hint">未从 CDN 加载到 <code>data-semantic</code> 运行时（需先发布 npm 包，或刷新重试），当前仅可浏览代码。</p>');
+    }
+
+    // ==================== 示例配置 ====================
+    var EXAMPLES = [
+      // ---- 声明规则 ----
+      {
+        tab: 'rules',
+        id: 'text',
+        title: '1. 文本绑定 data-semantic',
+        decl:
+          '<p data-semantic="page.title"></p>\n' +
+          '<p>你好，<strong data-semantic="user.name"></strong>！</p>\n' +
+          '<p>城市：<span data-semantic="user.addresses.0.city"></span></p>',
+        logic:
+          'DataSemantic.render({\n' +
+          '  page: { title: \'欢迎使用 data-semantic\' },\n' +
+          '  user: { name: \'张三\', addresses: [{ city: \'北京\' }] }\n' +
+          '});',
+        widget:
+          '<p data-semantic="page.title">（来自 data-semantic="page.title"）</p>\n' +
+          '<p>你好，<strong data-semantic="user.name">（名字）</strong>！</p>\n' +
+          '<p>城市：<span data-semantic="user.addresses.0.city">（城市）</span></p>',
+        data: {
+          page: { title: '欢迎使用 data-semantic' },
+          user: { name: '张三', addresses: [{ city: '北京' }] }
+        }
+      },
+      {
+        tab: 'rules',
+        id: 'attrs',
+        title: '2. 属性绑定 data-semantic-{attr}',
+        decl:
+          '<input data-semantic-placeholder="form.placeholder">\n' +
+          '<img data-semantic-src="user.avatar" data-semantic-alt="user.name">\n' +
+          '<span data-semantic-title="page.title"></span>\n' +
+          '<button data-semantic-aria-label="form.buttonLabel"\n' +
+          '        aria-describedby="demo-aria-tooltip">按钮</button>\n' +
+          '<input data-semantic-value="form.inputValue">\n' +
+          '<a data-semantic-href="user.profileLink" href="#">查看个人主页</a>\n' +
+          '<meta name="description" data-semantic-content="seo.description">\n' +
+          '<span data-semantic-aria-description="user.bio" aria-description="（描述）">悬停查看</span>',
+        logic:
+          'DataSemantic.render({\n' +
+          '  page: { title: \'欢迎使用 data-semantic\' },\n' +
+          '  user: {\n' +
+          '    name: \'张三\', avatar: \'data:image/svg+xml;...\',\n' +
+          '    profileLink: \'/profile/zhangsan\', bio: \'专注 AI 与 UI 融合\'\n' +
+          '  },\n' +
+          '  form: { placeholder: \'请输入关键词\', inputValue: \'默认值\', buttonLabel: \'提交表单\' },\n' +
+          '  seo: { description: \'data-semantic：AI 原生语义渲染框架\' }\n' +
+          '});',
+        widget:
+          '<p>placeholder：<input data-semantic-placeholder="form.placeholder" placeholder="（占位符）"></p>\n' +
+          '<p>alt / src：<img data-semantic-src="user.avatar" data-semantic-alt="user.name" width="48" height="48"></p>\n' +
+          '<p>title：<span data-semantic-title="page.title">（鼠标悬停查看 title）</span></p>\n' +
+          '<p>\n' +
+          '  aria-label + 悬停/聚焦查看提示：\n' +
+          '  <span class="tooltip-wrap">\n' +
+          '    <button data-semantic-aria-label="form.buttonLabel" aria-describedby="demo-aria-tooltip" aria-label="（标签）">按钮</button>\n' +
+          '    <span id="demo-aria-tooltip" role="tooltip">按钮的无障碍标签由 data-semantic-aria-label 提供</span>\n' +
+          '  </span>\n' +
+          '</p>\n' +
+          '<p>value：<input data-semantic-value="form.inputValue" value="（值）"></p>\n' +
+          '<p>href：<a data-semantic-href="user.profileLink" href="#">查看个人主页</a></p>\n' +
+          '<p>aria-description：<span data-semantic-aria-description="user.bio" aria-description="（描述）">悬停查看</span></p>\n' +
+          '<p>content（meta 标签）：head 中 <code>&lt;meta name="description" data-semantic-content="seo.description"&gt;</code> 的 content 已被渲染</p>',
+        data: {
+          page: { title: '欢迎使用 data-semantic' },
+          user: {
+            name: '张三',
+            avatar: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" rx="8" fill="#4f46e5"/><text x="24" y="30" font-size="18" fill="white" text-anchor="middle">张三</text></svg>'),
+            profileLink: '/profile/zhangsan',
+            bio: '专注 AI 与 UI 融合'
+          },
+          form: { placeholder: '请输入关键词', inputValue: '默认值', buttonLabel: '提交表单' },
+          seo: { description: 'data-semantic：AI 原生语义渲染框架' }
+        }
+      },
+      {
+        tab: 'rules',
+        id: 'data-pass',
+        title: '3. 自定义 data-* 透传',
+        decl:
+          '<span data-semantic-data-role="user.role"></span>\n' +
+          '<!-- data-semantic-data-{name} 透传到 data-{name} -->',
+        logic:
+          'DataSemantic.render({ user: { role: \'admin\' } });',
+        widget:
+          '<p>\n' +
+          '  <span data-semantic-data-role="user.role">（角色）</span>\n' +
+          '  <code>&lt;span data-semantic-data-role="user.role"&gt;</code> → <code>data-role</code> 属性\n' +
+          '</p>',
+        data: { user: { role: 'admin' } }
+      },
+      {
+        tab: 'rules',
+        id: 'display',
+        title: '4. 显示/隐藏 data-semantic-display',
+        decl:
+          '<span data-semantic-display="user.isVip">VIP 专属内容</span>\n' +
+          '<!-- data-semantic-display 绑定 style.display：布尔控制显隐，字符串原样透传 -->',
+        logic:
+          'DataSemantic.render({ user: { isVip: true } });\n' +
+          '// 点击切换按钮 → 只更新 isVip，display 同步显隐\n' +
+          'toggleBtn.addEventListener(\'click\', function () {\n' +
+          '  isVip = !isVip;\n' +
+          '  DataSemantic.render({ user: { isVip: isVip } });\n' +
+          '});',
+        widget:
+          '<p><span data-semantic-display="user.isVip">VIP 专属内容</span>\n' +
+          '  <button type="button" id="vip-toggle">切换 isVip</button>\n' +
+          '  <span class="muted">当前 isVip = <code id="vip-state">true</code></span></p>\n' +
+          '<p class="muted">规则：布尔 true → 显示、false → <code>display:none</code>；字符串值（如 <code>flex</code>）原样透传。</p>',
+        data: { user: { isVip: true } },
+        setup: function (container) {
+          var that = this;
+          var toggleBtn = container.querySelector('#vip-toggle');
+          var vipStateEl = container.querySelector('#vip-state');
+          var isVip = true;
+          DataSemantic.render(that.data);
+          if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+              isVip = !isVip;
+              DataSemantic.render({ user: { isVip: isVip } });
+              if (vipStateEl) vipStateEl.textContent = isVip ? 'true' : 'false';
+            });
+          }
+        }
+      },
+
+      // ---- 场景示例 ----
+      {
+        tab: 'scenarios',
+        id: 'i18n',
+        title: '5. 国际化（协议典型应用）',
+        decl:
+          '<div id="i18n-card">\n' +
+          '  <select id="lang-select">\n' +
+          '    <option value="zh">简体中文</option>\n' +
+          '    <option value="en">English</option>\n' +
+          '  </select>\n' +
+          '  <p data-semantic="hello"></p>\n' +
+          '  <p data-semantic="desc"></p>\n' +
+          '</div>',
+        logic:
+          'var i18n = new DataSemanticRuntime({ root: i18nCard });\n' +
+          'var applyLang = function () {\n' +
+          '  i18n.render(locales[langSelect.value]);\n' +
+          '};\n' +
+          'langSelect.addEventListener(\'change\', applyLang);\n' +
+          'applyLang();',
+        widget:
+          '<div id="demo-i18n">\n' +
+          '  <select id="i18n-select">\n' +
+          '    <option value="zh">🇨🇳 简体中文</option>\n' +
+          '    <option value="en">🇺🇸 English</option>\n' +
+          '  </select>\n' +
+          '  <p data-semantic="hello">（hello）</p>\n' +
+          '  <p data-semantic="desc">（desc）</p>\n' +
+          '</div>',
+        setup: function (container) {
+          var that = this;
+          var locales = {
+            zh: { hello: '你好，世界', desc: '欢迎使用 DataSemantic 框架' },
+            en: { hello: 'Hello, World', desc: 'Welcome to DataSemantic Framework' }
+          };
+          var langSelect = container.querySelector('#i18n-select');
+          that._i18n = new DataSemanticRuntime({ root: container });
+          that._applyLang = function () {
+            that._i18n.render(locales[langSelect.value]);
+          };
+          that._applyLang();
+          langSelect.addEventListener('change', that._applyLang);
+        },
+        teardown: function () {
+          if (this._i18n) { this._i18n.destroy(); this._i18n = null; }
+          this._applyLang = null;
+        }
+      },
+      {
+        tab: 'scenarios',
+        id: 'stream',
+        title: '6. AI 流式输出（细粒度增量渲染）',
+        decl:
+          '<p>回答：<span data-semantic="stream.answer"></span></p>\n' +
+          '<p>状态：<span data-semantic="stream.status"></span></p>\n' +
+          '<button id="stream-btn">开始流式输出</button>',
+        logic:
+          'streamBtn.addEventListener(\'click\', function () {\n' +
+          '  DataSemantic.render({ stream: { status: \'流式中…\' } });\n' +
+          '  var timer = setInterval(function () {\n' +
+          '    DataSemantic.render({ stream: { answer: text.slice(0, i) } });\n' +
+          '    if (i >= text.length) { clearInterval(timer);\n' +
+          '      DataSemantic.render({ stream: { status: \'完成\' } }); }\n' +
+          '  }, 80);\n' +
+          '});',
+        widget:
+          '<p>模拟 AI 流式返回：小块数据高频注入，<code>render</code> 只更新本次涉及的槽位。</p>\n' +
+          '<p>回答：<span data-semantic="stream.answer">（等待流式输出…）</span></p>\n' +
+          '<p>状态：<span data-semantic="stream.status">（状态）</span></p>\n' +
+          '<button id="stream-btn">▶ 开始流式输出</button>',
+        setup: function (container) {
+          var that = this;
+          var streamBtn = container.querySelector('#stream-btn');
+          var streamTimer = null;
+          var streamIdx = 0;
+          var streamText = 'data-semantic 是面向 AI 语义的声明式渲染框架，支持细粒度增量渲染与流式输出。';
+          var onClick = function () {
+            if (streamTimer) { clearInterval(streamTimer); streamTimer = null; }
+            streamIdx = 0;
+            streamBtn.disabled = true;
+            DataSemantic.render({ stream: { status: '流式中…' } });
+            streamTimer = setInterval(function () {
+              streamIdx += 3;
+              DataSemantic.render({ stream: { answer: streamText.slice(0, streamIdx) } });
+              if (streamIdx >= streamText.length) {
+                clearInterval(streamTimer);
+                streamTimer = null;
+                streamBtn.disabled = false;
+                DataSemantic.render({ stream: { status: '完成' } });
+              }
+            }, 80);
+          };
+          that._stopStream = function () { if (streamTimer) { clearInterval(streamTimer); streamTimer = null; } };
+          streamBtn.addEventListener('click', onClick);
+        },
+        teardown: function () {
+          if (this._stopStream) this._stopStream();
+          this._stopStream = null;
+        }
+      }
+    ];
+
+    // ==================== 界面渲染 ====================
+    var activeId = null;
+    var currentTeardown = null;
+    var examplesEl = document.getElementById('examples');
+    var panelTitleEl = document.getElementById('panel-title');
+    var declCodeEl = document.getElementById('decl-code');
+    var logicCodeEl = document.getElementById('logic-code');
+    var resultEl = document.getElementById('demo-result');
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // ==================== 代码块语法高亮（内联 tokenizer，零依赖） ====================
+    var JS_TOKEN_RE =
+      /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`)|\b(var|let|const|function|return|if|else|for|while|new|typeof|this)\b|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][\w$]*(?=\s*\())/g;
+
+    function highlightJs(esc) {
+      return esc.replace(JS_TOKEN_RE, function (m, cm, str, kw, num, fn) {
+        if (cm) return '<span class="tk-cm">' + cm + '</span>';
+        if (str) return '<span class="tk-str">' + str + '</span>';
+        if (kw) return '<span class="tk-kw">' + kw + '</span>';
+        if (num) return '<span class="tk-num">' + num + '</span>';
+        if (fn) return '<span class="tk-fn">' + fn + '</span>';
+        return m;
+      });
+    }
+
+    var HTML_TOKEN_RE =
+      /(&lt;!--[\s\S]*?--&gt;)|(&lt;\/?[a-zA-Z](?:(?!&gt;)[\s\S])*?&gt;)|("[^"]*")|('[^']*')/g;
+
+    function highlightTag(tag) {
+      var parts = tag.match(/^(&lt;\/?)([a-zA-Z][a-zA-Z0-9-]*)([\s\S]*?)(&gt;)$/);
+      if (!parts) return tag;
+      var inner = parts[3].replace(/([a-zA-Z-]+)(=)("[^"]*"|'[^']*')/g,
+        function (m, name, eq, val) {
+          return '<span class="tk-attr">' + name + '</span>' + eq +
+                 '<span class="tk-str">' + val + '</span>';
+        });
+      return parts[1] + '<span class="tk-tag">' + parts[2] + '</span>' + inner + parts[4];
+    }
+
+    function highlightHtml(esc) {
+      return esc.replace(HTML_TOKEN_RE, function (m, cm, tag, dq, sq) {
+        if (cm) return '<span class="tk-cm">' + cm + '</span>';
+        if (tag) return highlightTag(tag);
+        if (dq) return '<span class="tk-str">' + dq + '</span>';
+        if (sq) return '<span class="tk-str">' + sq + '</span>';
+        return m;
+      });
+    }
+
+    function highlightCode(code, lang) {
+      var esc = escapeHtml(code);
+      return lang === 'html' ? highlightHtml(esc) : highlightJs(esc);
+    }
+
+    // ==================== 复制按钮（剪贴板 API + textarea 降级） ====================
+    function copyToClipboard(text, btn) {
+      function done(ok) {
+        btn.textContent = ok ? '已复制' : '复制失败';
+        setTimeout(function () { btn.textContent = '复制'; }, 1200);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+        return;
+      }
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { done(document.execCommand('copy')); } catch (e) { done(false); }
+      document.body.removeChild(ta);
+    }
+
+    function bindCopyButtons() {
+      var buttons = document.querySelectorAll('.copy-btn[data-copy-target]');
+      Array.prototype.forEach.call(buttons, function (btn) {
+        btn.addEventListener('click', function () {
+          var el = document.getElementById(btn.getAttribute('data-copy-target'));
+          if (el) copyToClipboard(el.innerText, btn);
+        });
+      });
+    }
+
+    function renderList() {
+      examplesEl.innerHTML = '';
+      var groups = [
+        { tab: 'rules', title: '声明方式' },
+        { tab: 'scenarios', title: '场景示例' }
+      ];
+      groups.forEach(function (group) {
+        var heading = document.createElement('p');
+        heading.className = 'group-title';
+        heading.textContent = group.title;
+        examplesEl.appendChild(heading);
+        EXAMPLES.forEach(function (ex) {
+          if (ex.tab !== group.tab) return;
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'example-item' + (ex.id === activeId ? ' active' : '');
+          btn.innerHTML = '<span class="icon">' + CODE_ICON + '</span>' + escapeHtml(ex.title);
+          btn.addEventListener('click', function () { selectExample(ex.id); });
+          examplesEl.appendChild(btn);
+        });
+      });
+    }
+
+    function selectExample(id) {
+      var ex = null;
+      EXAMPLES.forEach(function (item) { if (item.id === id) ex = item; });
+      if (!ex) return;
+      if (id === activeId) return;
+      activeId = id;
+
+      // 清理上一个示例（i18n 实例销毁 / 停止流式定时器）
+      if (currentTeardown) { currentTeardown(); currentTeardown = null; }
+
+      panelTitleEl.textContent = ex.title;
+      declCodeEl.innerHTML = highlightCode(ex.decl, 'html');
+      logicCodeEl.innerHTML = highlightCode(ex.logic, 'js');
+
+      // 注入渲染结果 widget，并运行 setup
+      resultEl.innerHTML = ex.widget;
+      if (dataSemanticAvailable) {
+        if (ex.setup) {
+          ex.setup.call(ex, resultEl);
+        } else if (ex.data) {
+          DataSemantic.render(ex.data);
+        }
+      } else {
+        resultEl.insertAdjacentHTML('beforeend',
+          '<p style="color:#b91c1c">（CDN 运行时未加载，渲染结果不可用）</p>');
+      }
+      currentTeardown = ex.teardown ? ex.teardown.bind(ex) : null;
+
+      renderList();
+    }
+
+    // 初始化：默认选中第一个示例
+    bindCopyButtons();
+    renderList();
+    selectExample('text');
+  </script>
+
+</body>
+</html>

@@ -71,3 +71,24 @@ export function getTextAttrs(el) {
     .map((a) => a.name)
     .filter((name) => name === 'data-semantic' || name.startsWith('data-semantic-'));
 }
+
+/**
+ * 收集数组收缩后越界的索引路径（新数据较旧数据缩短的索引段），供清空多余槽位。
+ * 例如 newVal={ list: ['a'] }, oldVal={ list: ['a','b','c'] } → ["list.1", "list.2"]
+ */
+export function collectShrunkLeaves(newVal, oldVal, prefix = '', out = []) {
+  if (Array.isArray(newVal)) {
+    if (Array.isArray(oldVal) && oldVal.length > newVal.length) {
+      for (let i = newVal.length; i < oldVal.length; i++) {
+        out.push(prefix ? `${prefix}.${i}` : `${i}`);
+      }
+    }
+    return out;
+  }
+  if (newVal && typeof newVal === 'object' && oldVal && typeof oldVal === 'object') {
+    for (const key of Object.keys(newVal)) {
+      collectShrunkLeaves(newVal[key], oldVal[key], prefix ? `${prefix}.${key}` : key, out);
+    }
+  }
+  return out;
+}

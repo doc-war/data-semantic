@@ -7,6 +7,7 @@ import {
   getValueByPath,
   deepMerge,
   collectLeafPaths,
+  collectShrunkLeaves,
   getTextAttrs,
   isDataAttr
 } from './utility.js';
@@ -36,7 +37,7 @@ export class DataSemanticRuntime {
    * - 首次调用：自动建立槽位索引（缓存全部 data-semantic 绑定）+ 挂载 MutationObserver
    * - 后续调用：纯增量深合并，只渲染本次传入数据实际涉及的槽位
    * - 结构变化：MutationObserver 自动检测，增量重建索引
-   * - 删除字段：显式传 undefined（如 { user: { age: undefined } } 清空对应槽位）
+   * - 删除字段：显式传 undefined/null（如 { user: { age: undefined } } 清空对应槽位）
    */
   render(data) {
     if (data === null || typeof data !== 'object') {
@@ -62,10 +63,14 @@ export class DataSemanticRuntime {
     // 3. 收集本次数据涉及的叶子路径
     const keys = collectLeafPaths(data);
 
-    // 4. 纯增量深合并数据源
+    // 4. 纯增量深合并数据源（数组整体替换）
+    const prev = this.dict;
     this.dict = deepMerge(this.dict, data);
 
-    // 5. 细粒度渲染：只更新本次涉及的槽位
+    // 5. 数组收缩时补收集越界索引路径，清空多余槽位
+    collectShrunkLeaves(data, prev, '', keys);
+
+    // 6. 细粒度渲染：只更新本次涉及的槽位
     this.applyKeys(keys);
   }
 
@@ -115,12 +120,32 @@ export class DataSemanticRuntime {
       }
       if (m.type === 'childList') {
         return [...m.addedNodes, ...m.removedNodes].some(
-          (n) => n.nodeType === 1 && getTextAttrs(n).length > 0
+          (n) => n.nodeType === 1 && this.hasBindingInSubtree(n)
         );
       }
       return false;
     });
-    if (relevant) this.buildIndex();
+    if (relevant) {
+      this.buildIndex();
+      this.applyExistingData();
+    }
+  }
+
+  /** 元素自身或其子孙节点是否包含 data-semantic 绑定（含 data-semantic-*） */
+  hasBindingInSubtree(el) {
+    if (getTextAttrs(el).length > 0) return true;
+    const descendants = el.querySelectorAll('*');
+    for (const d of descendants) {
+      if (getTextAttrs(d).length > 0) return true;
+    }
+    return false;
+  }
+
+  /** 将 dict 中已有数据应用到全部索引槽位（覆盖动态插入节点） */
+  applyExistingData() {
+    for (const key of this.index.keys()) {
+      if (getValueByPath(this.dict, key) !== undefined) this.applyKey(key);
+    }
   }
 
   /** 扫描 DOM，构建 key → 元素映射 */
@@ -140,9 +165,15 @@ export class DataSemanticRuntime {
         this.getOrCreateEntry(textKey).textEls.push(el);
       }
 
+      // --- data-semantic-display（Element.style.display 绑定，style 的唯一特例）---
+      const displayKey = el.getAttribute('data-semantic-display');
+      if (displayKey) {
+        this.getOrCreateEntry(displayKey).displayEls.push(el);
+      }
+
       // --- data-semantic-{attr}（Element.setAttribute 绑定）---
       for (const name of textAttrs) {
-        if (name === 'data-semantic') continue;
+        if (name === 'data-semantic' || name === 'data-semantic-display') continue;
         const targetAttr = name.slice('data-semantic-'.length);
 
         // 允许 data-* 透传，其他需在白名单内
@@ -163,7 +194,7 @@ export class DataSemanticRuntime {
   getOrCreateEntry(key) {
     let entry = this.index.get(key);
     if (!entry) {
-      entry = { textEls: [], attrBindings: [] };
+      entry = { textEls: [], attrBindings: [], displayEls: [] };
       this.index.set(key, entry);
     }
     return entry;
@@ -183,17 +214,26 @@ export class DataSemanticRuntime {
 
     const value = getValueByPath(this.dict, key);
 
-    // 如果 value 为 undefined，清空对应的 DOM（适合删除场景）
-    if (value === undefined) {
+    // 如果 value 为 undefined / null，清空对应的 DOM（删除字段 / 空值场景）
+    if (value === undefined || value === null) {
       for (const el of entry.textEls) {
         el.textContent = '';
       }
       for (const { el, attr } of entry.attrBindings) {
         el.removeAttribute(attr);
       }
-      if (this.warnOnMissing) {
-        this.warn(`key "${key}" 未提供，已清空对应 DOM`);
+      for (const el of entry.displayEls) {
+        el.style.display = '';
       }
+      if (this.warnOnMissing) {
+        this.warn(`key "${key}" 未提供（undefined/null），已清空对应 DOM`);
+      }
+      return;
+    }
+
+    // 叶子值必须是标量，对象/数组绑定跳过渲染并告警
+    if (typeof value === 'object') {
+      this.warn(`key "${key}" 绑定到非标量值（对象/数组），已跳过渲染`);
       return;
     }
 
@@ -206,6 +246,10 @@ export class DataSemanticRuntime {
     for (const { el, attr } of entry.attrBindings) {
       el.setAttribute(attr, strVal);
     }
+    // display 节点：布尔控制显示/隐藏，字符串原样透传
+    for (const el of entry.displayEls) {
+      el.style.display = typeof value === 'boolean' ? (value ? '' : 'none') : strVal;
+    }
   }
 
   /** 注入 data-semantic 协议声明 */
@@ -216,13 +260,6 @@ export class DataSemanticRuntime {
       const meta = document.createElement('meta');
       meta.name = 'data-semantic';
       meta.content = PROTOCOL_VERSION;
-      document.head.appendChild(meta);
-    }
-
-    if (!document.querySelector('meta[name="semantic-ui"]')) {
-      const meta = document.createElement('meta');
-      meta.name = 'semantic-ui';
-      meta.content = `protocol=data-semantic; version=${PROTOCOL_VERSION}; runtime=data-semantic`;
       document.head.appendChild(meta);
     }
   }

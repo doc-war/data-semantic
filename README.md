@@ -1,50 +1,94 @@
 # data-semantic
 
-为 AI 时代设计的 **UI 文本渲染协议 & 实现框架** —— 纯 HTML 声明式绑定、零 JS 侵入，将 UI 结构与页面数据的获取/处理逻辑解耦。
+data-semantic是HTML原生的语义插座协议，为 AI 时代设计。
+
+ —— 纯 HTML 声明式绑定、零 JS 侵入。其技术原理是基于HTML原生 `data-*`规范，预声明语义化的数据插槽，从而实现UI 结构与页面数据的获取/处理逻辑彻底解耦。
+
+## 极简开发体验
+
+data-semantic的核心技术原理，是基于html原生标准的`data-*`机制，来实现数据绑定语义声明，再通过运行时进行数据注入、触发渲染。
+
+#### 1、声明数据
+
+声明一个key为hello的数据要求、以Node.textContent方式绑定。
 
 ```html
 <div data-semantic="hello"></div>
 ```
 
-```js
-DataSemantic.render({ hello: '你好，世界' });
+#### 2、渲染数据
+
+渲染数据时，页面须先引入运行时。
+
+```html
+<script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"></script> 
 ```
+
+现在，我们在业务逻辑中，调用渲染方法来实现数据渲染。
+
+```html
+<script>
+    const data = {
+        hello:"你好，世界"   //在结构化数据中，用相同的key提供数据
+    }
+    DataSemantic.render(data)  //框架会自动将数据渲染到每一个key的对应位置
+</script> 
+```
+
+#### 3、渲染结果
 
 ```html
 <div data-semantic="hello">你好，世界</div>
 ```
 
-## 特性
+## 范式特性
 
-- **纯声明式**：基于 HTML 原生 `data-*` 机制，无需任何 JS 胶水代码
-- **事件驱动响应式**：`DataSemantic.render(data)` 即数据变更事件——数据一变、UI 即同步；无需状态管理、无生命周期、零样板
-- **零侵入**：渲染后 `data-semantic` 属性依然保留，页面同时保留数据语义
-- **批量渲染**：`render()` 自动批量更新所有绑定节点
-- **细粒度增量**：`render()` 只渲染本次传入数据涉及的槽位，未涉及的槽位不受影响
-- **AI 流式友好**：支持小块数据高频注入（如流式输出），无需每次传全量数据
-- **结构自愈**：MutationObserver 自动监听结构变化（增删绑定节点），增量重建索引
-- **语义声明**：加载时自动注入 `data-semantic` 协议 meta，向三方平台声明语义
-- **环境自适应**：浏览器 / jsdom / Node 均可运行，支持全局单例与多实例
+#### 声明式体验
 
-## 响应式模型：render 即数据变更事件
+基于 HTML 原生 `data-*` 机制，有几个关键优势：
 
-主流框架的响应式本质都是「数据变更 → 视图更新」，区别只在于**数据变更事件**的入口：
+- ✅ HTML中**声明式**绑定，一看就知道哪些地方需要数据。由于是html标准，不依赖任何运行环境，就可以直接双击模板html文件，肉眼测试UI的结构和样式
+- ✅ runtime**自动渲染**，无需任何 JS 胶水代码
+- ✅ 数据和视图**解耦**，UI结构由AI或设计师维护，数据由开发者或CMS提供
 
-| 框架 | 数据变更事件 | 响应式原理 |
-| --- | --- | --- |
-| React | `setState(data)` | 虚拟 DOM diff |
-| Vue | 修改 `reactive()` 数据（Proxy set） | 依赖追踪 + 渲染器 |
-| **data-semantic** | **`DataSemantic.render(data)`** | **槽位索引 + 细粒度增量** |
+#### 语义优先
 
-data-semantic 以**显式 render 事件**表达数据变更：无论数据来自 AI 输出、API 响应还是用户操作，唯一的动作就是传入新数据。配合声明式绑定，无需状态管理、生命周期或依赖追踪——这是对 AI 生成代码最友好的响应式模型。
+由于data-semantic属性在渲染后依然存在，实际上同时为页面自动保留了语义，这一点在AI时代将成为一个核心优势，你可以使用诸如：
 
-## 安装
+* `data-semantic="page.title"`、
+* `data-semantic="project.name"`、
+* `data-semantic="project.create_time"`、
+* `data-semantic-alt="流程图"`
 
-```bash
-npm install data-semantic
-```
+之类的形式来清晰声明数据的语义。这为SEO、GEO分析提供了一种更理想的自动化模型，为三方平台提供侧载语义分析服务提供了可能。
 
-### 浏览器 `<script>` 引入（UMD / CDN）
+#### 响应式模型
+
+主流前端框架的响应式本质都是「数据变更 → 视图更新」，区别只在于**数据变更事件**的入口：
+
+| 框架              | 数据变更事件                        | 响应式原理            |
+| ----------------- | ----------------------------------- | --------------------- |
+| React             | `setState(data)`                    | 虚拟 DOM diff         |
+| Vue               | 修改 `reactive()` 数据（Proxy set） | 依赖追踪 + 渲染器     |
+| **data-semantic** | **`DataSemantic.render(data)`**     | 槽位索引 + 细粒度增量 |
+
+data-semantic 以**显式 render 事件**表达数据变更：
+
+开发者无法关心任何复杂的语法，也无需在编译时就锁定数据来源，框架唯一的动作就是传入新数据，结合配合声明式绑定，无需状态管理、生命周期或依赖追踪。——这是对 AI 生成代码最友好的响应式模型。
+
+#### AI流式友好
+
+data-semantic框架本身不存在全量更新和局部更新的说法，因为要更新的范围完全由开发者决定，`render()` 内部会自动缓存所有槽位，自动计算渲染范围，从而实现细粒度的增量更新。
+
+这种特性，天然契合LLM的流式输出，可以支持将未完的json切成小块数据的高频注入。
+
+## data-semantic框架
+
+#### 使用方式
+
+支持umd和esm两种方式
+
+##### `<script>` 加载
 
 ```html
 <script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"></script>
@@ -53,12 +97,18 @@ npm install data-semantic
 </script>
 ```
 
-引入后全局同时暴露两个符号：
+##### ES导入
+
+安装依赖
+
+```bash
+npm install data-semantic
+```
+
+导入后全局同时暴露两个符号：
 
 - `DataSemantic`：开箱即用的全局单例（绑定 `document`）
 - `DataSemanticRuntime`：运行时类，可用于创建作用域实例（如 `new DataSemanticRuntime({ root: ... })`）
-
-### ES Module
 
 ```js
 import DataSemantic, { DataSemanticRuntime } from 'data-semantic';
@@ -69,108 +119,320 @@ const scoped = new DataSemanticRuntime({ root: document.getElementById('app') })
 scoped.render(data);   // 局部实例
 ```
 
-## API
+#### API
 
-### `DataSemantic.render(data)`
+##### `DataSemantic.render(data)`
 
 细粒度增量渲染：
 
 - 首次调用：自动建立槽位索引（缓存全部 data-semantic 绑定）并渲染
 - 后续调用：纯增量深合并数据源，只渲染本次传入数据涉及的槽位
-- 删除字段：显式传 `undefined`（如 `{ user: { age: undefined } }`）清空对应槽位并告警
-- 结构变化：MutationObserver 自动检测并重建索引
+- 删除字段 / 置空：显式传 `undefined` 或 `null`（如 `{ user: { age: undefined } }`）清空对应槽位并告警
+- 结构变化：MutationObserver 自动检测并重建索引，已存在的数据自动补渲染到新插入的绑定节点
 
-### `DataSemantic.destroy()`
+##### `DataSemantic.destroy()`
 
 销毁实例，释放索引与数据（用于 SPA 卸载 / 组件销毁）。
 
-### `new DataSemanticRuntime(options)`
+##### `new DataSemanticRuntime(options)`
 
 | 选项 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `root` | `HTMLElement \| Document` | `document` | 索引与渲染作用域 |
-| `allowedAttrs` | `string[]` | 协议白名单 | `data-semantic-{attr}` 允许注入的属性 |
-| `warnOnMissing` | `boolean` | 仅开发环境 | 缺失 key / 非法属性是否告警 |
+| root | HTMLElement \| Document | `document` | 索引与渲染作用域 |
+| allowedAttrs | string[] | 协议白名单 | `data-semantic-{attr}` 允许注入的属性 |
+| warnOnMissing | boolean | 仅开发环境 | 缺失 key / 非法属性是否告警 |
 
-## data-semantic 协议
+## data-semantic 协议要点
 
-### 两种声明机制
+#### 声明方式
+
+当前支持三种基础的正交语义声明需求：填什么内容、填到哪里、要不要显示。
 
 | 声明 | 对应操作 | 示例 |
 | --- | --- | --- |
-| `data-semantic={key}` | `Node.textContent` | `<h1 data-semantic="page.title">` |
-| `data-semantic-{attr}={key}` | `Element.setAttribute()` | `<input data-semantic-placeholder="form.placeholder">` |
+| data-semantic={key} | Node.textContent | `<h1 data-semantic="page.title">` |
+| data-semantic-{attr}={key} | Element.setAttribute() | `<input data-semantic-placeholder="form.placeholder">` |
+| data-semantic-display={key} | Element.style.display | `<h1 data-semantic-display="user.isVip">` |
 
-### key 路径
+#### 渲染规范
 
-遵循标准 JSON 寻址（Dot Notation），支持嵌套与数组索引：
+协议禁止渲染事件处理器、`style`（唯一例外：`data-semantic-display` 仅允许控制 `Element.style.display`）、全局标识符、iframe 等内联脚本相关属性。`data-semantic-{attr}` 中 `{attr}` 必须落在白名单内，否则视为无效绑定并告警。
+
+##### 1. `data-semantic`（基础文本内容）
+
+绑定 `Node.textContent`，用于普通文本展示。
+
+```html
+<h1 data-semantic="user.name">默认姓名</h1>
+<p data-semantic="user.title">默认职位</p>
+
+<script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"></script>
+<script>
+    const data = { user: { name: "张三", title: "高级前端工程师" } };
+    DataSemantic.render(data);
+    // 渲染后：
+    // <h1 data-semantic="user.name">张三</h1>
+</script>
+```
+
+##### 2. `data-semantic-placeholder`（输入框占位符）
+
+绑定 `placeholder` 属性，适用于 `<input>`、`<textarea>`。
+
+```html
+<input data-semantic-placeholder="user.placeholder" placeholder="默认占位文本" />
+
+<script>
+  const data = { user: { placeholder: "请输入搜索关键词" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <input data-semantic-placeholder="user.placeholder" placeholder="请输入搜索关键词" />
+</script>
+```
+
+##### 3. `data-semantic-value`（表单默认值）
+
+绑定 `value` 属性，用于单向设置表单控件的初始值（**注意**：不参与双向绑定，仅用于初始渲染）。
+
+```html
+<input type="text" data-semantic-value="user.defaultValue" value="旧值" />
+
+<script>
+  const data = { user: { defaultValue: "初始值" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <input type="text" data-semantic-value="user.defaultValue" value="初始值" />
+</script>
+```
+
+##### 4. `data-semantic-title`（鼠标悬停提示）
+
+绑定 `title` 属性，为任意元素添加原生悬浮提示。
+
+```html
+<button data-semantic-title="user.bio" title="默认提示">悬停查看</button>
+
+<script>
+  const data = { user: { bio: "专注AI与UI融合" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <button data-semantic-title="user.bio" title="专注AI与UI融合">悬停查看</button>
+</script>
+```
+
+##### 5. `data-semantic-alt`（图片无障碍替代文本）
+
+绑定 `alt` 属性，用于 `<img>` 等媒体元素，提升 SEO 和无障碍访问。
+
+html
+
+```html
+<img data-semantic-alt="user.name" alt="默认头像" src="https://i.pravatar.cc/150?img=11" />
+
+<script>
+  const data = { user: { name: "张三" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <img data-semantic-alt="user.name" alt="张三" src="https://i.pravatar.cc/150?img=11" />
+</script>
+```
+
+##### 6. `data-semantic-src`（动态资源链接）
+
+绑定 `src` 属性，用于 `<img>`、`<video>`、`<audio>`、`<iframe>` 等。
+
+```html
+<img data-semantic-src="user.avatar" src="default.jpg" />
+
+<script>
+  const data = { user: { avatar: "https://i.pravatar.cc/150?img=11" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <img data-semantic-src="user.avatar" src="https://i.pravatar.cc/150?img=11" />
+</script>
+```
+
+##### 7. `data-semantic-href`（动态链接地址）
+
+绑定 `href` 属性，用于 `<a>` 标签动态生成跳转链接。
+
+```html
+<a data-semantic-href="user.profileLink" href="#">查看个人主页</a>
+
+<script>
+  const data = { user: { profileLink: "/profile/zhangsan" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <a data-semantic-href="user.profileLink" href="/profile/zhangsan">查看个人主页</a>
+</script>
+```
+
+##### 8. `data-semantic-aria-label`（无障碍标签）
+
+绑定 `aria-label` 属性，为无文本交互元素提供屏幕阅读器标签。
+
+```html
+<button data-semantic-aria-label="user.name" aria-label="默认用户">
+  <svg><!-- 纯图标按钮 --></svg>
+</button>
+
+<script>
+  const data = { user: { name: "张三" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <button data-semantic-aria-label="user.name" aria-label="张三">...</button>
+</script>
+```
+
+##### 9. `data-semantic-aria-description`（无障碍详细描述）
+
+绑定 `aria-description` 属性，为复杂组件提供额外描述。
+
+```html
+<div role="tooltip" data-semantic-aria-description="user.bio" aria-description="默认描述">
+  悬停查看详情
+</div>
+
+<script>
+  const data = { user: { bio: "专注AI与UI融合" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <div role="tooltip" data-semantic-aria-description="user.bio" aria-description="专注AI与UI融合">悬停查看详情</div>
+</script>
+```
+
+##### 10. `data-semantic-content`（元数据动态内容）
+
+绑定 `content` 属性，专用于 `<meta>` 标签，动态设置页面描述或关键词。
+
+```html
+<meta name="description" data-semantic-content="user.metaDesc" content="默认描述" />
+
+<script>
+  const data = { user: { metaDesc: "Data-Semantic 完整属性范例页面，展示所有白名单属性" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <meta name="description" data-semantic-content="user.metaDesc" content="Data-Semantic 完整属性范例页面，展示所有白名单属性" />
+</script>
+```
+
+##### 11. `data-semantic-data-*`（自定义 data 属性透传）
+
+允许通过 `data-semantic-data-*` 将数据渲染到任意 `data-*` 自定义属性，格式为 `data-semantic-data-<自定义名>`。
+
+```html
+<div data-semantic-data-user-id="user.id" data-user-id="默认ID">用户卡片</div>
+
+<script>
+  const data = { user: { id: "12345" } };
+  DataSemantic.render(data);
+  // 渲染后：
+  // <div data-semantic-data-user-id="user.id" data-user-id="12345">用户卡片</div>
+</script>
+```
+
+##### 12. `data-semantic-display`（是否可见）
+
+绑定 `Element.style.display`，用于根据数据状态控制元素的可见性。
+
+```html
+<p data-semantic-display="user.isVip">VIP 专属内容</p>
+
+<script>
+    const data = {
+        user: { isVip: false }
+    };
+    DataSemantic.render(data);
+    // 渲染后：
+    // <p data-semantic-display="user.isVip" style="display:none">VIP 专属内容</p>
+</script>
+```
+
+渲染规则
+
+| **数据值**     | 语义   | **行为**                          |
+| :------------- | ------ | :-------------------------------- |
+| 布尔值-`true`  | 显示   | `style.display = ''`              |
+| 布尔值-`false` | 不显示 | `style.display = 'none'`          |
+| string值       | 透传   | 直接透传（`'flex'`、`'grid'` 等） |
+
+#### key 路径
+
+UI侧声明的槽位值，对应的是数据侧的key路径。
+
+##### 语义化命名
+
+为了面向开放语义分析，槽位命名应该尽可能遵循语义化表示，尽可能避免纯id式的申明
+
+```html
+<p data-semantic="abcd123"></p>
+<div data-semantic="ccabdd3c-f196-4c1f-935b-c32bc53fa162"></div>
+```
+
+##### json寻址
+
+槽位命名应该遵循标准 JSON 寻址规范（Dot Notation），支持嵌套与数组索引：
 
 ```html
 <p data-semantic="page.title"></p>
 <p data-semantic="user.addresses.0.city"></p>
 ```
 
-### 属性白名单
+相应的，也会引入数据规范约束：数据侧的key不应该包含 `.`，因为会与路径分隔符冲突，造成寻址问题。
 
-`data-semantic-{attr}` 中 `{attr}` 必须落在白名单内，否则视为无效绑定并告警。
+#### 数据边界
 
-- **表单与交互**：`placeholder`、`value`、`title`
-- **媒体与资源**：`alt`、`src`、`href`
-- **无障碍访问**：`aria-label`、`aria-description`
-- **SEO 与元数据**：`content`（用于 `<meta>`）
-- **自定义桥接**：`data-*`（允许 `data-semantic-data-{name}` 透传到 `data-{name}`）
+数组场景遵循以下明确边界，避免对框架行为的误解：
 
-协议禁止渲染事件处理器、`style`、全局标识符、iframe 等内联脚本相关属性。
+##### 1、 数组必须整体传入
 
-## 语义声明（自动注入）
+对于数组，`deepMerge`不会递归合并 ，而是直接整体替换，因此每次传入数组都必须是完整数组：
 
-加载时自动向 `<head>` 注入：
+比如数组有两个值，你需要更新第二个。
+
+* ✅ 正确方式
+
+```js
+render({ pages: { list: ['a', 'b'] } });
+```
+
+* ❌ 错误方式
+
+```js
+render({ pages: { list: [undefined, 'x'] } });
+```
+
+##### 2、key必须是标量
+
+* ✅ 正确方式
+
+```html
+<div data-semantic="pages.list.0.name"></div>
+```
+
+* ❌ 错误方式
+
+```html
+<div data-semantic="pages.list"></div>
+```
+
+绑定到对象/数组的槽位会被跳过（不渲染、开发环境告警）。
+
+#### 语义声明
+
+加载时运行时会自动向页面 `<head>` 注入语义协议信息，向三方开放声明本页面遵循data-semantic协议规定的语义化声明：
 
 ```html
 <meta name="data-semantic" content="1.0" />
-<meta name="semantic-ui" content="protocol=data-semantic; version=1.0; runtime=data-semantic" />
 ```
 
-## 工程结构
+## 查看演示（demo.html）
 
-```text
-data-semantic/
-├── src/
-│   ├── index.js         # 入口：导出单例与类，浏览器挂载全局 DataSemantic
-│   ├── runtime.js       # 运行时能力：索引构建、细粒度渲染、协议实现
-│   ├── utility.js       # 通用逻辑：路径解析、深合并、叶子路径收集
-│   └── umd.js           # UMD 构建专用入口
-├── test/
-│   └── runtime.test.mjs # jsdom 单元测试
-├── demo.html            # 核心协议演示（含国际化场景）
-├── index.d.ts           # TypeScript 类型声明
-├── vite.config.js       # ES 构建配置
-├── vite.umd.config.js   # UMD 构建配置
-├── package.json
-└── 设计.md              # 架构设计文档
-```
-
-## 开发命令
-
-```bash
-npm run build        # 构建 ES + UMD 产物（dist/runtime.es.js / runtime.umd.js）
-npm test             # 运行 jsdom 单元测试
-npm run typecheck    # TypeScript 类型检查（tsc --noEmit）
-npm run dev          # 启动 Vite 开发服务器
-```
-
-### 查看演示（demo.html）
-
-`demo.html` 引用构建产物 `./dist/runtime.umd.js`，**无需静态服务**：
-
-1. 首次使用先执行一次 `npm run build` 生成 `dist/`
-2. 直接双击打开 `demo.html` 即可查看（含国际化切换与 AI 流式输出演示）
-
-若未构建 `dist/`，页面会显示提示而非报错。
+直接双击`demo.html` ，可以查看渲染示例和演示范例
 
 ## 后续规划
 
-- `src/compiler.js`：编译时能力（扫描 HTML 提取 key 清单、校验数据源完整性）
+`src/compiler.js`：编译时能力（扫描 HTML 提取 key 清单、校验数据源完整性）
 
 ## License
 

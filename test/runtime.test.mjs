@@ -44,6 +44,7 @@ const html = `
   <meta data-semantic-content="seo.description">
   <span data-semantic-data-role="user.role"></span>
   <span data-semantic-style="user.name" style="color:red"></span>
+  <p data-semantic-display="user.isVip">VIP</p>
   <div data-semantic="missingKey">keep-me</div>
   <p data-semantic="user.age"></p>
 `;
@@ -115,6 +116,41 @@ await test('白名单外属性绑定被忽略并告警', () => {
   }
   assert.ok(warnings.some((w) => w.includes('style')));
   assert.strictEqual(d.querySelector('[data-semantic-style]').style.color, 'red');
+});
+
+await test('data-semantic-display：布尔控制显示/隐藏', () => {
+  const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
+  rt.render({ user: { isVip: true } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, '');
+  rt.render({ user: { isVip: false } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
+});
+
+await test('data-semantic-display：字符串值原样透传', () => {
+  const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
+  rt.render({ user: { isVip: 'flex' } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'flex');
+});
+
+await test('data-semantic-display：undefined/null 复位 display', () => {
+  const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
+  rt.render({ user: { isVip: true } });
+  rt.render({ user: { isVip: undefined } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, '');
+});
+
+await test('data-semantic-display 不属白名单校验且不产生 display 属性', () => {
+  const warnings = [];
+  const origWarn = console.warn;
+  console.warn = (...args) => warnings.push(args.join(' '));
+  try {
+    const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: true });
+    rt.render({ user: { isVip: true } });
+  } finally {
+    console.warn = origWarn;
+  }
+  assert.ok(!warnings.some((w) => w.includes('display')));
+  assert.strictEqual(d.querySelector('[data-semantic-display]').hasAttribute('display'), false);
 });
 
 await test('显式传 undefined 清空对应 DOM 并告警', () => {
@@ -199,6 +235,17 @@ await test('自定义 allowedAttrs 白名单生效', () => {
   assert.strictEqual(d2.window.document.querySelector('div').getAttribute('title'), 'tip');
 });
 
+await test('动态插入节点自动获取已有数据（不依赖后续 render）', async () => {
+  const dom7 = createDom('<p data-semantic="a">0</p>');
+  const rt = new DataSemanticRuntime({ root: dom7.window.document.body, warnOnMissing: false });
+  rt.render({ a: '1', user: { name: '张三' } });
+  const p = dom7.window.document.createElement('p');
+  p.setAttribute('data-semantic', 'user.name');
+  dom7.window.document.body.appendChild(p);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.strictEqual(p.textContent, '张三');
+});
+
 await test('DOM 结构变化后自动重建索引', () => {
   const d3 = createDom('<p data-semantic="a">0</p>');
   const rt = new DataSemanticRuntime({ root: d3.window.document.body, warnOnMissing: false });
@@ -211,13 +258,69 @@ await test('DOM 结构变化后自动重建索引', () => {
   assert.strictEqual(p.textContent, '2');
 });
 
+await test('数组收缩:越界索引节点自动清空', () => {
+  const dom8 = createDom('<p data-semantic="list.0">0</p><p data-semantic="list.1">1</p><p data-semantic="list.2">2</p>');
+  const rt = new DataSemanticRuntime({ root: dom8.window.document.body, warnOnMissing: false });
+  rt.render({ list: ['a', 'b', 'c'] });
+  rt.render({ list: ['a'] });
+  const ps = dom8.window.document.querySelectorAll('p');
+  assert.strictEqual(ps[0].textContent, 'a');
+  assert.strictEqual(ps[1].textContent, '');
+  assert.strictEqual(ps[2].textContent, '');
+});
+
+await test('非标量值(对象/数组)绑定跳过渲染并告警', () => {
+  const warnings = [];
+  const origWarn = console.warn;
+  try {
+    console.warn = (...args) => warnings.push(args.join(' '));
+    const dom9 = createDom('<p data-semantic="x"></p>');
+    const rt = new DataSemanticRuntime({ root: dom9.window.document.body, warnOnMissing: true });
+    rt.render({ x: '1' });
+    rt.render({ obj: { a: 1 }, arr: [1, 2] });
+    // 动态插入绑定整对象/数组的节点 → applyExistingData 命中非标量守卫
+    const div = dom9.window.document.createElement('div');
+    div.setAttribute('data-semantic', 'obj');
+    const p = dom9.window.document.createElement('p');
+    p.setAttribute('data-semantic', 'arr');
+    dom9.window.document.body.appendChild(div);
+    dom9.window.document.body.appendChild(p);
+    rt.render({}); // 消费挂起的 DOM 变更 → 触发 applyExistingData
+    assert.strictEqual(div.textContent, '');
+    assert.strictEqual(p.textContent, '');
+    assert.ok(warnings.some((w) => w.includes('非标量')));
+  } finally {
+    console.warn = origWarn;
+  }
+});
+
+await test('null 叶子值清空对应 DOM', () => {
+  const dom10 = createDom('<p data-semantic="x">keep</p>');
+  const rt = new DataSemanticRuntime({ root: dom10.window.document.body, warnOnMissing: false });
+  rt.render({ x: '值' });
+  rt.render({ x: null });
+  assert.strictEqual(dom10.window.document.querySelector('p').textContent, '');
+});
+
+await test('嵌套绑定的动态节点结构变化自动重建索引', async () => {
+  const domN = createDom('<p data-semantic="a">0</p>');
+  const rt = new DataSemanticRuntime({ root: domN.window.document.body, warnOnMissing: false });
+  rt.render({ a: '1' });
+  // 动态插入「容器内嵌套绑定」的节点（绑定在子孙节点上）
+  const wrap = domN.window.document.createElement('div');
+  wrap.innerHTML = '<p>回答：<span data-semantic="stream.answer"></span></p>';
+  domN.window.document.body.appendChild(wrap);
+  await new Promise((r) => setTimeout(r, 0));
+  rt.render({ stream: { answer: '流式内容' } });
+  assert.strictEqual(wrap.querySelector('span').textContent, '流式内容');
+});
+
 await test('自动注入 data-semantic 协议 meta（注入到全局 document）', () => {
   const semantic = d.querySelector('meta[name="data-semantic"]');
   const semanticUi = d.querySelector('meta[name="semantic-ui"]');
   assert.ok(semantic, 'data-semantic meta 存在');
   assert.strictEqual(semantic.content, '1.0');
-  assert.ok(semanticUi, 'semantic-ui meta 存在');
-  assert.ok(semanticUi.content.includes('protocol=data-semantic'));
+  assert.strictEqual(semanticUi, null, '不再注入 semantic-ui meta');
 });
 
 await test('destroy 后渲染被忽略', () => {
