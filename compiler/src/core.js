@@ -19,10 +19,6 @@ function classifyKey(raw) {
   return 'absolute';
 }
 
-function isLegacySubscript(raw) {
-  return /\.\d+(?=\.|$)/.test(raw);
-}
-
 function resolveRawKey(raw, context) {
   const type = classifyKey(raw);
   if (type === 'absolute') return expandBrackets(raw);
@@ -42,7 +38,6 @@ function getValueByPath(obj, path) {
   const expanded = path.replace(/\[(\d+)\]/g, '.$1');
   return expanded.split('.').reduce((current, key) => {
     if (current === null || current === undefined) return undefined;
-    if (/^\d+$/.test(key) && Array.isArray(current)) return current[parseInt(key, 10)];
     return current[key];
   }, obj);
 }
@@ -153,9 +148,6 @@ export function check(template, data = null) {
         errors.push({ type: 'violation', message: `属性 "${node.attr}" 不在白名单中`, selector: node.selector, key: node.key });
       }
     }
-    if (isLegacySubscript(node.key)) {
-      warnings.push({ type: 'legacy-syntax', message: `检测到废弃的数组下标语法 "${node.key}"，建议使用相对寻址或 [] 括号语法`, selector: node.selector, key: node.key });
-    }
     if (classifyKey(node.key) === 'numbered') {
       warnings.push({ type: 'non-recommended', message: `使用了序号寻址 "${node.key}"，建议优先使用 . 前缀相对寻址`, selector: node.selector, key: node.key });
     }
@@ -163,7 +155,7 @@ export function check(template, data = null) {
       const value = getValueByPath(data, node.resolved);
       if (value === undefined) {
         warnings.push({ type: 'missing-data', message: `key "${node.resolved}" 在数据中不存在`, selector: node.selector, key: node.resolved });
-      } else if (node.type === 'text' && typeof value === 'object' && value !== null) {
+      } else if (typeof value === 'object' && value !== null) {
         errors.push({ type: 'violation', message: `key "${node.resolved}" 绑定到非标量值（对象/数组）`, selector: node.selector, key: node.resolved });
       }
     }
@@ -179,7 +171,7 @@ export function check(template, data = null) {
  * and builds output HTML string, handling list expansion inline.
  */
 export function compile(template, data, options = {}) {
-  const { removeDataAttrs = true } = options;
+  const { removeDataAttrs = false } = options;
   const root = parse(template, { script: true, style: true });
 
   function renderNode(el, context) {
@@ -205,10 +197,10 @@ export function compile(template, data, options = {}) {
       }
     }
 
-    // Build the output attributes (non-semantic ones preserved)
+    // Build the output attributes (non-semantic ones preserved, semantic ones preserved by default)
     let outAttrs = '';
     for (const [attrName, attrVal] of Object.entries(attrs)) {
-      if (attrName.startsWith('data-semantic') && removeDataAttrs) continue;
+      if (removeDataAttrs && attrName.startsWith('data-semantic')) continue;
       outAttrs += ` ${attrName}="${escapeHtml(attrVal)}"`;
     }
 

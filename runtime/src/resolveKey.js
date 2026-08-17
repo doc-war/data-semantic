@@ -15,16 +15,6 @@ export function classifyKey(raw) {
 }
 
 /**
- * Detect legacy dot-subscript pattern (e.g. "pages.list.0.name").
- * This is deprecated — tools should warn.
- * @param {string} raw
- * @returns {boolean}
- */
-export function isLegacySubscript(raw) {
-  return /\.\d+(?=\.|$)/.test(raw);
-}
-
-/**
  * Strip bracket segments and convert to pure dot-notation.
  * "list[0].title" → "list.0.title"
  * "a[0].b[1].c" → "a.0.b.1.c"

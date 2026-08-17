@@ -27,9 +27,6 @@ export function getValueByPath(obj, path) {
   const expanded = path.replace(/\[(\d+)\]/g, '.$1');
   return expanded.split('.').reduce((current, key) => {
     if (current === null || current === undefined) return undefined;
-    if (/^\d+$/.test(key) && Array.isArray(current)) {
-      return current[parseInt(key, 10)];
-    }
     return current[key];
   }, obj);
 }

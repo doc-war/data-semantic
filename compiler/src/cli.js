@@ -28,13 +28,13 @@ program
   .requiredOption('-t, --template <path>', 'HTML template file')
   .requiredOption('-d, --data <path>', 'JSON data file')
   .option('-o, --output <path>', 'Output HTML file (default: stdout)')
-  .option('--keep-data-attrs', 'Keep data-semantic attributes in output')
+  .option('--remove-data-attrs', 'Remove data-semantic attributes from output (default: keep)')
   .action((opts) => {
     try {
       const template = readFileSync(resolve(opts.template), 'utf-8');
       const data = JSON.parse(readFileSync(resolve(opts.data), 'utf-8'));
       const result = compile(template, data, {
-        removeDataAttrs: !opts.keepDataAttrs
+        removeDataAttrs: !!opts.removeDataAttrs
       });
       if (opts.output) {
         writeFileSync(resolve(opts.output), result, 'utf-8');

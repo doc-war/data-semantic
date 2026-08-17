@@ -17,7 +17,7 @@ import {
   getTextAttrs,
   isDataAttr
 } from './utility.js';
-import { resolveRawKey, isLegacySubscript } from './resolveKey.js';
+import { resolveRawKey } from './resolveKey.js';
 import {
   discoverLists,
   cacheTemplate,
@@ -211,9 +211,6 @@ export class DataSemanticRuntime {
     // data-semantic (text binding)
     const textKey = el.getAttribute('data-semantic');
     if (textKey) {
-      if (isLegacySubscript(textKey)) {
-        this.warn(`检测到废弃的数组下标语法 "${textKey}"，建议使用相对寻址或 [] 括号语法`);
-      }
       const resolved = resolveRawKey(textKey, context);
       this.getOrCreateEntry(resolved).textEls.push(el);
     }
@@ -274,6 +271,7 @@ export class DataSemanticRuntime {
 
     if (source === null) {
       this.clearListKeys(listEntry);
+      if (this.warnOnMissing) this.warn(`list key "${key}" 为 null，已清空容器`);
       el.innerHTML = '';
       return;
     }
@@ -398,11 +396,21 @@ export class DataSemanticRuntime {
 
     const value = getValueByPath(this.dict, key);
 
+    // display 绑定：独立处理，不走提前返回
+    for (const el of entry.displayEls) {
+      if (value === undefined || value === null || value === false || value === '') {
+        el.style.display = 'none';
+      } else if (value === true) {
+        el.style.display = '';
+      } else {
+        el.style.display = String(value);
+      }
+    }
+
+    // text 绑定和 attr 绑定：缺失数据时清空
     if (value === undefined || value === null) {
-      // undefined/null → clear DOM, warn
       for (const el of entry.textEls) el.textContent = '';
       for (const { el, attr } of entry.attrBindings) el.removeAttribute(attr);
-      for (const el of entry.displayEls) el.style.display = '';
       if (this.warnOnMissing) {
         this.warn(`key "${key}" 未提供（undefined/null），已清空对应 DOM`);
       }
@@ -418,9 +426,6 @@ export class DataSemanticRuntime {
 
     for (const el of entry.textEls) el.textContent = strVal;
     for (const { el, attr } of entry.attrBindings) el.setAttribute(attr, strVal);
-    for (const el of entry.displayEls) {
-      el.style.display = typeof value === 'boolean' ? (value ? '' : 'none') : strVal;
-    }
   }
 
   injectSemanticMeta() {

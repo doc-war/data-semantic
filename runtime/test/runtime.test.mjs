@@ -37,7 +37,7 @@ async function loadRuntime(dom) {
 const html = `
   <h1 data-semantic="page.title">default</h1>
   <p data-semantic="user.name"></p>
-  <p data-semantic="user.addresses.0.city"></p>
+  <p data-semantic="user.addresses[0].city"></p>
   <input data-semantic-placeholder="search.placeholder">
   <img data-semantic-src="avatar" data-semantic-alt="user.name">
   <a data-semantic-href="link.url">link</a>
@@ -79,7 +79,7 @@ await test('支持嵌套路径与数组索引', () => {
     user: { name: '张三', addresses: [{ city: '北京' }] }
   });
   assert.strictEqual(d.querySelector('p[data-semantic="user.name"]').textContent, '张三');
-  assert.strictEqual(d.querySelector('p[data-semantic="user.addresses.0.city"]').textContent, '北京');
+  assert.strictEqual(d.querySelector('p[data-semantic="user.addresses[0].city"]').textContent, '北京');
 });
 
 await test('白名单属性绑定（placeholder/src/alt/href/content）', () => {
@@ -132,11 +132,12 @@ await test('data-semantic-display：字符串值原样透传', () => {
   assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'flex');
 });
 
-await test('data-semantic-display：undefined/null 复位 display', () => {
+await test('data-semantic-display：undefined/null 隐藏元素', () => {
   const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
   rt.render({ user: { isVip: true } });
-  rt.render({ user: { isVip: undefined } });
   assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, '');
+  rt.render({ user: { isVip: undefined } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
 });
 
 await test('data-semantic-display 不属白名单校验且不产生 display 属性', () => {
@@ -259,7 +260,7 @@ await test('DOM 结构变化后自动重建索引', () => {
 });
 
 await test('数组收缩:越界索引节点自动清空', () => {
-  const dom8 = createDom('<p data-semantic="list.0">0</p><p data-semantic="list.1">1</p><p data-semantic="list.2">2</p>');
+  const dom8 = createDom('<p data-semantic="list[0]">0</p><p data-semantic="list[1]">1</p><p data-semantic="list[2]">2</p>');
   const rt = new DataSemanticRuntime({ root: dom8.window.document.body, warnOnMissing: false });
   rt.render({ list: ['a', 'b', 'c'] });
   rt.render({ list: ['a'] });

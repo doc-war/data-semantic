@@ -490,11 +490,6 @@ render({ pages: { list: [undefined, 'x'] } });
 
 直接双击`demo.html` ，可以查看渲染示例和演示范例
 
-## 后续规划
-
-- `data-semantic-compiler`：编译时能力（扫描 HTML 提取语义结构、校验数据源完整性、静态展开渲染）
-- 协议一致性测试：Runtime 与 Compiler 对同一 HTML + Data 产生语义一致的结果
-
 ## License
 
 MIT
