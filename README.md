@@ -102,7 +102,8 @@ data-semantic框架本身不存在全量更新和局部更新的说法，因为�
 安装依赖
 
 ```bash
-npm install data-semantic
+npm install data-semantic            # 运行时
+npm install data-semantic-compiler   # 编译器（可选）
 ```
 
 导入后全局同时暴露两个符号：
@@ -133,6 +134,31 @@ scoped.render(data);   // 局部实例
 ##### `DataSemantic.destroy()`
 
 销毁实例，释放索引与数据（用于 SPA 卸载 / 组件销毁）。
+
+#### 编译器
+
+`data-semantic-compiler` 提供静态模板分析和编译能力：
+
+```bash
+# 编译：HTML + Data → 最终 HTML
+data-semantic build -t template.html -d data.json -o out.html
+
+# 校验：检查协议合规性 + 数据完整性
+data-semantic check -t template.html -d data.json
+
+# 检视：输出语义结构 JSON（供 AI / 工具使用）
+data-semantic inspect -t template.html
+```
+
+编程接口：
+
+```js
+import { compile, check, inspect } from 'data-semantic-compiler';
+
+const html = compile(template, data);         // 静态展开
+const report = check(template, data);          // { valid, errors, warnings }
+const nodes = inspect(template);               // [{ tag, key, type, selector }]
+```
 
 ##### `new DataSemanticRuntime(options)`
 
@@ -356,6 +382,30 @@ html
 | 布尔值-`false` | 不显示 | `style.display = 'none'`          |
 | string值       | 透传   | 直接透传（`'flex'`、`'grid'` 等） |
 
+##### 13. `data-semantic-list`（列表容器）
+
+声明列表容器，其 innerHTML 为列表项模板。渲染时对数组做 n 次实例化，替换容器内容。容器内的相对 key（以 `.` 开头）自动解析为 `{listKey}[i].xxx`。
+
+```html
+<div data-semantic-list="posts">
+  <article>
+    <h2 data-semantic=".title"></h2>
+    <span data-semantic=".author"></span>
+  </article>
+</div>
+
+<script>
+  const data = {
+    posts: [
+      { title: "AI 入门", author: "Alice" },
+      { title: "Vue 进阶", author: "Bob" }
+    ]
+  };
+  DataSemantic.render(data);
+  // 渲染后容器内有两个 <article>
+</script>
+```
+
 #### key 路径
 
 UI侧声明的槽位值，对应的是数据侧的key路径。
@@ -375,7 +425,17 @@ UI侧声明的槽位值，对应的是数据侧的key路径。
 
 ```html
 <p data-semantic="page.title"></p>
-<p data-semantic="user.addresses.0.city"></p>
+```
+
+##### 相对寻址
+
+以 `.` 开头，在 list 容器内相对当前列表项寻址：
+
+```html
+<div data-semantic-list="posts">
+  <h2 data-semantic=".title"></h2>     <!-- posts[i].title -->
+  <span data-semantic=".author"></span> <!-- posts[i].author -->
+</div>
 ```
 
 相应的，也会引入数据规范约束：数据侧的key不应该包含 `.`，因为会与路径分隔符冲突，造成寻址问题。
@@ -432,7 +492,8 @@ render({ pages: { list: [undefined, 'x'] } });
 
 ## 后续规划
 
-`src/compiler.js`：编译时能力（扫描 HTML 提取 key 清单、校验数据源完整性）
+- `data-semantic-compiler`：编译时能力（扫描 HTML 提取语义结构、校验数据源完整性、静态展开渲染）
+- 协议一致性测试：Runtime 与 Compiler 对同一 HTML + Data 产生语义一致的结果
 
 ## License
 

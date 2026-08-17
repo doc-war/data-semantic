@@ -14,10 +14,18 @@ export function isDataAttr(name) {
   return name.startsWith('data-');
 }
 
-/** 解析嵌套路径，支持数组索引，例如 "user.addresses.0.city" */
+/**
+ * 解析嵌套路径，支持数组索引和括号语法。
+ * 例如 "user.addresses.0.city"、"list[0].title"、"a[0].b[1].c"
+ * @param {object} obj
+ * @param {string} path - Dot-notation path, may contain [n] brackets
+ * @returns {*} Resolved value or undefined
+ */
 export function getValueByPath(obj, path) {
   if (!obj || typeof obj !== 'object') return undefined;
-  return path.split('.').reduce((current, key) => {
+  // Expand bracket syntax: "list[0].title" → "list.0.title"
+  const expanded = path.replace(/\[(\d+)\]/g, '.$1');
+  return expanded.split('.').reduce((current, key) => {
     if (current === null || current === undefined) return undefined;
     if (/^\d+$/.test(key) && Array.isArray(current)) {
       return current[parseInt(key, 10)];

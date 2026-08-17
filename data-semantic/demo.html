@@ -143,13 +143,16 @@
 
   <h1>data-semantic 语义渲染框架</h1>
   <p><code>data-semantic</code> 通过声明式属性把数据源绑定到 DOM，无需手写 DOM 操作。</p>
+  <h2>完备性</h2>
   <ul class="orthogonal-list">
     <li>填什么内容 → <code>data-semantic</code> 绑定 <code>textContent</code></li>
     <li>填到哪里 → <code>data-semantic-{attr}</code> 绑定 DOM 属性（白名单内）</li>
     <li>要不要显示 → <code>data-semantic-display</code> 绑定 <code>style.display</code></li>
+    <li>列表渲染 → <code>data-semantic-list</code> 声明容器，innerHTML 为模板，数组逐项实例化</li>
   </ul>
 
   <!-- 左右两栏：左栏分组示例列表，右栏声明代码 / 渲染逻辑 / 渲染结果 -->
+  <h2>示例</h2>
   <main class="layout">
     <aside class="examples" id="examples"></aside>
     <section class="panel">
@@ -326,9 +329,137 @@
 
       // ---- 场景示例 ----
       {
+        tab: 'rules',
+        id: 'list',
+        title: '5. 列表语义 data-semantic-list',
+        decl:
+          '<div data-semantic-list="posts">\n' +
+          '  <article>\n' +
+          '    <h2 data-semantic=".title"></h2>\n' +
+          '    <span data-semantic=".author"></span>\n' +
+          '  </article>\n' +
+          '</div>\n' +
+          '<!-- .title 以 . 开头，相对 list context → posts[i].title -->',
+        logic:
+          'DataSemantic.render({\n' +
+          '  posts: [\n' +
+          '    { title: \'AI 入门\', author: \'Alice\' },\n' +
+          '    { title: \'Vue 进阶\', author: \'Bob\' }\n' +
+          '  ]\n' +
+          '});\n' +
+          '// 容器内生成 2 个 <article>，.title/.author 相对 posts[i]',
+        widget:
+          '<div data-semantic-list="posts" id="demo-list">\n' +
+          '  <article style="border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin:6px 0;">\n' +
+          '    <h2 data-semantic=".title" style="margin:0 0 4px;font-size:16px;">（标题）</h2>\n' +
+          '    <span data-semantic=".author" style="color:#6b7280;font-size:13px;">（作者）</span>\n' +
+          '  </article>\n' +
+          '</div>\n' +
+          '<p style="margin:8px 0;"><button type="button" id="list-add-btn">+ 添加一项</button></p>',
+        data: {
+          posts: [
+            { title: 'AI 入门', author: 'Alice' },
+            { title: 'Vue 进阶', author: 'Bob' }
+          ]
+        },
+        setup: function (container) {
+          var that = this;
+          // 每次进入时重置数据副本，避免 push 累积
+          var posts = [
+            { title: 'AI 入门', author: 'Alice' },
+            { title: 'Vue 进阶', author: 'Bob' }
+          ];
+          var idx = posts.length;
+          DataSemantic.render({ posts: posts });
+          var addBtn = container.querySelector('#list-add-btn');
+          if (addBtn) {
+            addBtn.addEventListener('click', function () {
+              idx++;
+              posts.push({ title: '新增文章 ' + idx, author: 'Charlie' });
+              DataSemantic.render({ posts: posts });
+            });
+          }
+        }
+      },
+      {
+        tab: 'rules',
+        id: 'nested-list',
+        title: '6. 嵌套列表 + 相对寻址',
+        decl:
+          '<div data-semantic-list="categories">\n' +
+          '  <h3 data-semantic=".name"></h3>\n' +
+          '  <ul data-semantic-list=".items">\n' +
+          '    <li data-semantic=".title"></li>\n' +
+          '  </ul>\n' +
+          '</div>\n' +
+          '<!-- 内层 .items 相对 categories[i].items -->\n' +
+          '<!-- 内层 .title 相对 categories[i].items[j].title -->',
+        logic:
+          'DataSemantic.render({\n' +
+          '  categories: [\n' +
+          '    { name: \'技术\', items: [{ title: \'JS\' }, { title: \'TS\' }] },\n' +
+          '    { name: \'生活\', items: [{ title: \'旅行\' }] }\n' +
+          '  ]\n' +
+          '});\n' +
+          '// 嵌套 list：内层相对 key 永远相对最近的 list context',
+        widget:
+          '<div data-semantic-list="categories" id="demo-nested">\n' +
+          '  <div style="margin:6px 0;">\n' +
+          '    <h3 data-semantic=".name" style="margin:0 0 4px;font-size:15px;">（分类）</h3>\n' +
+          '    <ul data-semantic-list=".items" style="margin:0;padding-left:20px;">\n' +
+          '      <li data-semantic=".title">（条目）</li>\n' +
+          '    </ul>\n' +
+          '  </div>\n' +
+          '</div>',
+        data: {
+          categories: [
+            { name: '技术', items: [{ title: 'JS' }, { title: 'TS' }] },
+            { name: '生活', items: [{ title: '旅行' }] }
+          ]
+        },
+        setup: function () {
+          DataSemantic.render(this.data);
+        }
+      },
+      {
+        tab: 'rules',
+        id: 'list-absolute',
+        title: '7. 列表内绝对 key',
+        decl:
+          '<div data-semantic-list="items">\n' +
+          '  <span data-semantic=".name"></span>\n' +
+          '  <span data-semantic="siteTitle"></span>\n' +
+          '</div>\n' +
+          '<!-- .name 相对 list context → items[i].name -->\n' +
+          '<!-- siteTitle 绝对 key，始终从数据根寻址 -->',
+        logic:
+          'DataSemantic.render({\n' +
+          '  siteTitle: \'My Site\',\n' +
+          '  items: [\n' +
+          '    { name: \'产品 A\' },\n' +
+          '    { name: \'产品 B\' }\n' +
+          '  ]\n' +
+          '});\n' +
+          '// 绝对 key 不受 list context 影响，每个 item 都显示 siteTitle',
+        widget:
+          '<div data-semantic-list="items" id="demo-list-abs">\n' +
+          '  <p style="margin:4px 0;">\n' +
+          '    <span data-semantic=".name" style="font-weight:600;">（名称）</span>\n' +
+          '    — <span data-semantic="siteTitle" style="color:#6b7280;">（站点）</span>\n' +
+          '  </p>\n' +
+          '</div>',
+        data: {
+          siteTitle: 'My Site',
+          items: [{ name: '产品 A' }, { name: '产品 B' }]
+        },
+        setup: function () {
+          DataSemantic.render(this.data);
+        }
+      },
+      {
         tab: 'scenarios',
         id: 'i18n',
-        title: '5. 国际化（协议典型应用）',
+        title: '8. 国际化（协议典型应用）',
         decl:
           '<div id="i18n-card">\n' +
           '  <select id="lang-select">\n' +
@@ -376,7 +507,7 @@
       {
         tab: 'scenarios',
         id: 'stream',
-        title: '6. AI 流式输出（细粒度增量渲染）',
+        title: '9. AI 流式输出（细粒度增量渲染）',
         decl:
           '<p>回答：<span data-semantic="stream.answer"></span></p>\n' +
           '<p>状态：<span data-semantic="stream.status"></span></p>\n' +

@@ -16,8 +16,8 @@ export declare class DataSemanticRuntime {
 
   /**
    * 渲染数据
-   * - 首次调用：自动建立索引 + 全量渲染
-   * - 后续调用：自动判断增量更新或全量替换
+   * - 首次调用：自动建立索引 + 全量渲染（含 data-semantic-list 列表）
+   * - 后续调用：非 list 元素增量更新，list 容器全量重建
    * - DOM 结构变化：自动检测并重建索引
    */
   render(data: Record<string, unknown>): void;

@@ -1,42 +1,22 @@
 {
-  "name": "data-semantic",
-  "version": "1.1.0",
-  "description": "AI-native semantic render runtime for modern web.",
-  "keywords": [
-    "data-*",
-    "data-semantic",
-    "semantic protocol",
-    "ai-native",
-    "data semantic protocol"
-  ],
+  "name": "data-semantic-monorepo",
+  "private": true,
+  "description": "Monorepo for data-semantic protocol, runtime, and compiler.",
   "type": "module",
-  "main": "./dist/runtime.umd.js",
-  "module": "./dist/runtime.es.js",
-  "types": "./index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./index.d.ts",
-      "import": "./dist/runtime.es.js",
-      "default": "./dist/runtime.umd.js"
-    }
-  },
-  "files": [
-    "dist",
-    "index.d.ts",
-    "README.md",
-    "LICENSE"
+  "workspaces": [
+    "runtime",
+    "compiler"
   ],
   "scripts": {
-    "build": "vite build && vite build --config vite.umd.config.js",
-    "dev": "vite",
-    "test": "node test/runtime.test.mjs",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck && npm run build"
-  },
-  "devDependencies": {
-    "jsdom": "^29.1.1",
-    "typescript": "^7.0.2",
-    "vite": "^6.0.0"
+    "build": "npm run build -w runtime",
+    "build:compiler": "npm run build -w compiler",
+    "build:all": "npm run build -w runtime && npm run build -w compiler",
+    "test": "npm test -w runtime",
+    "test:compiler": "npm test -w compiler",
+    "test:all": "npm test -w runtime && npm test -w compiler",
+    "test:conformance": "node tests/protocol-tests/runner-runtime.mjs && node tests/protocol-tests/runner-compiler.mjs",
+    "lint": "echo 'TODO: add linter'",
+    "typecheck": "npm run typecheck -w runtime"
   },
   "repository": {
     "type": "git",
