@@ -8,15 +8,26 @@
     "compiler"
   ],
   "scripts": {
-    "build": "npm run build -w runtime",
+    "build": "npm run build -w runtime && npm run build -w compiler",
+    "build:runtime": "npm run build -w runtime",
     "build:compiler": "npm run build -w compiler",
-    "build:all": "npm run build -w runtime && npm run build -w compiler",
-    "test": "npm test -w runtime",
+    "test": "npm test -w runtime && npm test -w compiler",
+    "test:runtime": "npm test -w runtime",
     "test:compiler": "npm test -w compiler",
-    "test:all": "npm test -w runtime && npm test -w compiler",
     "test:conformance": "node tests/protocol-tests/runner-runtime.mjs && node tests/protocol-tests/runner-compiler.mjs",
-    "lint": "echo 'TODO: add linter'",
-    "typecheck": "npm run typecheck -w runtime"
+    "lint": "npm run lint -w runtime && npm run lint -w compiler",
+    "lint:runtime": "npm run lint -w runtime",
+    "lint:compiler": "npm run lint -w compiler",
+    "typecheck": "npm run typecheck -w runtime && npm run typecheck -w compiler",
+    "typecheck:runtime": "npm run typecheck -w runtime",
+    "typecheck:compiler": "npm run typecheck -w compiler",
+    "publish": "echo '>> 同时发布 runtime 和 compiler <<' && npm run publish:runtime && npm run publish:compiler",
+    "publish:runtime": "npm run publish -w runtime",
+    "publish:compiler": "npm run publish -w compiler"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "globals": "^16.0.0"
   },
   "repository": {
     "type": "git",

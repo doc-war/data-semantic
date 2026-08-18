@@ -70,7 +70,7 @@ data-semantic的核心是基于html原生的`data-*`规范实现数据语义和�
 </div>
 ```
 
-翻译结果，除了取决于协议，还有开发者实际传入的数据，无论是运行时的render方法，还是编译器的compile方法，都是增量翻译，翻译范围取决于传入的数据及寻址命中量。
+实际的翻译范围，取决于传入的数据及寻址命中量，列表容器节点和普通叶子节点的规则有所不同。
 
 
 
@@ -105,12 +105,14 @@ data-semantic="page.chapters[0].name"
 ```yaml
 data-semantic=".name"
 data-semantic="[0].name"
+data-semantic="."
 ```
 
 严格规定：
 
 * 相对寻址必须以 `.` 或 `[` 开头
 * 其相对的上下文必须是某个数组，即由上层`data-semantic-list`提供，比如`data-semantic-list="page.chapters"`，则`.name`相当于`page.chapters[i].name`，而`[0].name`相当于指定`page.chapters[0].name`
+* 对于["a","b"]这样的标量数组，直接使用纯点号声明
 * 为了避免了上下文栈管理过深，不利于AI识别的语义准确度指标，协议明确规定，只有`data-semantic-list`可以提供相对上下文语义，嵌套对象禁止使用相对寻址。
 
 | **位置**             | **上下文语义**          |
@@ -243,6 +245,64 @@ json数据侧的字段key，要求只能采用base64URL字符集，避免特殊�
 ```
 
 `data-semantic-data-role`满足协议规范，在白名单以内，需要执行语义翻译。但`data-semantic-role`、`semantic-role`均是协议未定义的声明方式，透传不做任何处置。
+
+#### 翻译模式
+
+实际的翻译范围，取决于传入的数据及寻址命中量，列表容器节点和普通叶子节点的规则有所不同：
+
+* 对于叶子节点，采用增量翻译，只变动当次传入数据命中的范围，未命中部分保持不变
+* 对于list容器节点，采用全量翻译，如果列表此前有2项，下一次渲染时只传入了1项，那么整个list节点会进行重新渲染，只剩下一项。
+
+示例
+
+对于这样一个模板
+
+```html
+<div data-semantic-list="answer">
+  <p data-semantic="."></p>
+</div>
+```
+
+第一次渲染
+
+```json
+
+let data={
+    answer:["不要回答！","不要回答！","不要回答！"]
+}
+DataSemantic.render(data)
+```
+
+渲染结果
+
+```html
+<div data-semantic-list="answer">
+  <p data-semantic=".">不要回答！</p>
+  <p data-semantic=".">不要回答！</p>
+  <p data-semantic=".">不要回答！</p>
+</div>
+```
+
+第二次渲染
+
+```json
+let data={
+    answer:["不要回答啊！"]
+}
+DataSemantic.render(data)
+```
+
+渲染结果
+
+```html
+<div data-semantic-list="answer">
+  <p data-semantic=".">不要回答啊！</p>
+</div>
+```
+
+
+
+
 
 ### 1、内容绑定
 
@@ -479,16 +539,16 @@ runtime在初次渲染时，comptime在编译时，都应该自动向页面 `<he
 
 协议的实现框架建议实现几个要点
 
-#### 数据传入
+#### 数据约束
 
 ```js
 render(dataRoot)
 ```
 
-遵循两个原则：
+传入的数据要遵循两个原则：
 
 * 翻译结果值只能是标量，列表或进行模板展开，自身节点不会有渲染行为，最终片段叶子要渲染的属性、内容、样式的值都必须是可以标量。
-* 只能翻译json对象。严禁传入JS对象，如此，`data-semantic="window.size"` 之类的寻址绝对安全，没有任何可能去取到宿主对象、函数变量等。
+* 只能翻译纯json对象。严禁传入JS对象，如此，`data-semantic="window.size"` 之类的寻址绝对安全，没有任何可能去取到宿主对象、函数变量等。
 
 #### 禁止模式
 
@@ -496,7 +556,7 @@ render(dataRoot)
 
 - **事件处理函数**：`data-semantic-onclick` 等
 - **样式注入**：`data-semantic-style`（白名单中的 `data-semantic-display` 除外）
-- **JS对象**：协议规定“`dataRoot` 必须是纯 JSON 对象（Plain Object），避免任何解析到 `window.*` 或 `document.*` 的键的可能性。
+- **JS对象**：协议规定“`dataRoot` 必须是纯 JSON 对象（Plain Object），且不能是根数组形式，前者是为了避免任何解析到 `window.*` 或 `document.*` 的键的可能性。后者是为了保证寻址规则的简单。
 - **iframe 注入**：在 `<iframe>` 元素上使用 `data-semantic-src` 时，`check` 必须校验解析后的值。仅允许 `https:`、`http:` 或协议相对 `//` 开头的合法 URL，**严禁** `javascript:`、`data:`、`vbscript:` 等危险协议。若校验不通过，视为 **Error**。
 
 #### 审查输出 

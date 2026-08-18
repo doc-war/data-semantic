@@ -49,7 +49,7 @@ export function resolveRawKey(raw, context) {
   if (type === 'relative') {
     // strip leading '.', expand brackets
     const rest = expandBrackets(raw.slice(1));
-    return base ? `${base}.${rest}` : rest;
+    return rest ? `${base}.${rest}` : base;
   }
 
   // numbered: expand brackets, prepend context

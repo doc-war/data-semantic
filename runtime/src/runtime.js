@@ -22,8 +22,6 @@ import {
   discoverLists,
   cacheTemplate,
   isInsideList,
-  renderList,
-  indexListBindings
 } from './list.js';
 
 const PROTOCOL_VERSION = '1.0';
@@ -79,7 +77,7 @@ export class DataSemanticRuntime {
     // Re-render all lists (full rebuild per list)
     this._rendering = true;
     try {
-      for (const [el, listEntry] of this.lists) {
+      for (const [, listEntry] of this.lists) {
         this.renderOneList(listEntry);
       }
     } finally {
@@ -212,15 +210,23 @@ export class DataSemanticRuntime {
     // data-semantic (text binding)
     const textKey = el.getAttribute('data-semantic');
     if (textKey) {
-      const resolved = resolveRawKey(textKey, context);
-      this.getOrCreateEntry(resolved).textEls.push(el);
+      if (context === null && textKey.startsWith('.')) {
+        this.warn(`相对键 "${textKey}" 不能在非 list 上下文中使用，已忽略`);
+      } else {
+        const resolved = resolveRawKey(textKey, context);
+        this.getOrCreateEntry(resolved).textEls.push(el);
+      }
     }
 
     // data-semantic-display
     const displayKey = el.getAttribute('data-semantic-display');
     if (displayKey) {
-      const resolved = resolveRawKey(displayKey, context);
-      this.getOrCreateEntry(resolved).displayEls.push(el);
+      if (context === null && displayKey.startsWith('.')) {
+        this.warn(`相对键 "${displayKey}" 不能在非 list 上下文中使用，已忽略`);
+      } else {
+        const resolved = resolveRawKey(displayKey, context);
+        this.getOrCreateEntry(resolved).displayEls.push(el);
+      }
     }
 
     // data-semantic-{attr}
@@ -235,8 +241,12 @@ export class DataSemanticRuntime {
 
       const key = el.getAttribute(name);
       if (key) {
-        const resolved = resolveRawKey(key, context);
-        this.getOrCreateEntry(resolved).attrBindings.push({ el, attr: targetAttr });
+        if (context === null && key.startsWith('.')) {
+          this.warn(`相对键 "${key}" 不能在非 list 上下文中使用，已忽略`);
+        } else {
+          const resolved = resolveRawKey(key, context);
+          this.getOrCreateEntry(resolved).attrBindings.push({ el, attr: targetAttr });
+        }
       }
     }
   }

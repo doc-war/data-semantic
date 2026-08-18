@@ -25,7 +25,7 @@ function resolveRawKey(raw, context) {
   const base = context || '';
   if (type === 'relative') {
     const rest = expandBrackets(raw.slice(1));
-    return base ? `${base}.${rest}` : rest;
+    return rest ? `${base}.${rest}` : base;
   }
   const expanded = expandBrackets(raw);
   return base ? `${base}.${expanded}` : expanded;
@@ -111,7 +111,7 @@ export function parseSemanticStructure(template) {
 }
 
 function buildSelector(el) {
-  let path = [];
+  const path = [];
   let current = el;
   while (current && current.tagName) {
     path.unshift(current.tagName.toLowerCase());
@@ -150,6 +150,9 @@ export function check(template, data = null) {
     }
     if (classifyKey(node.key) === 'numbered') {
       warnings.push({ type: 'non-recommended', message: `使用了序号寻址 "${node.key}"，建议优先使用 . 前缀相对寻址`, selector: node.selector, key: node.key });
+    }
+    if (node.key.startsWith('.') && (node.context === null || node.context === 'root')) {
+      errors.push({ type: 'violation', message: `相对键 "${node.key}" 不能在非 list 上下文中使用`, selector: node.selector, key: node.key });
     }
     if (node.tag === 'iframe' && node.attr === 'src' && data) {
       const value = getValueByPath(data, node.resolved);

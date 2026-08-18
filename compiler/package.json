@@ -13,7 +13,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "build": "echo 'TODO: add compiler build'",
+    "lint": "npx eslint src/",
+    "typecheck": "echo 'TODO: add compiler typecheck'",
+    "prepublishOnly": "npm run test && npm run lint && npm run build"
   },
   "dependencies": {
     "commander": "^13.0.0",

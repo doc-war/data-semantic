@@ -30,8 +30,9 @@
     "build": "vite build && vite build --config vite.umd.config.js",
     "dev": "vite",
     "test": "node test/runtime.test.mjs",
+    "lint": "eslint src/ test/",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck && npm run build"
+    "prepublishOnly": "npm run test && npm run lint && npm run typecheck && npm run build"
   },
   "devDependencies": {
     "jsdom": "^29.1.1",
