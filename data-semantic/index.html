@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="data-semantic" content="1.0" />
 <title>data-semantic · HTML 原生的语义插座协议</title>
 <meta name="description" content="data-semantic 是面向 AI 时代的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。" />
 <link rel="icon" href="/img/favicon.ico" type="image/x-icon"><!-- 引入官网ico -->
@@ -33,880 +34,747 @@
 </script>
 <script src="/analytics.js" defer></script><!-- 引入统计代码 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+SC:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0B141F;
-    --bg-panel:#101B2A;
-    --bg-panel-2:#152438;
-    --bg-raised:#1B2E45;
-    --grid-line:rgba(141,160,184,.07);
-    --border:rgba(141,160,184,.22);
-    --border-soft:rgba(141,160,184,.13);
-    --text:#EDEAE0;
-    --text-dim:#8DA0B8;
-    --text-faint:#5B6E85;
-    --amber:#FFB238;
-    --amber-dim:#8A6423;
-    --teal:#57E0C4;
-    --teal-dim:#2E6156;
-    --red:#FF6B5E;
-    --font-display:'Space Grotesk', 'IBM Plex Sans SC', sans-serif;
-    --font-body:'IBM Plex Sans', 'IBM Plex Sans SC', sans-serif;
-    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
-    --radius:3px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto;}
-    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
-  }
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--font-body);
-    font-size:16px;
-    line-height:1.6;
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size:40px 40px;
-  }
-  ::selection{background:var(--amber-dim); color:var(--amber);}
-  a{color:inherit;}
-  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
-  .eyebrow{
-    font-family:var(--font-mono);
-    font-size:12px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--amber);
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-  }
-  .eyebrow::before{content:"◈"; font-size:11px;}
-  h1,h2,h3{font-family:var(--font-display); font-weight:600; margin:0; letter-spacing:-.01em;}
-  code, .mono{font-family:var(--font-mono);}
-  .section-tag{
-    font-family:var(--font-mono); font-size:12px; color:var(--text-faint);
-    letter-spacing:.08em; text-transform:uppercase;
-  }
+:root{
+  --bg:#0b1220;
+  --bg-2:#0e1729;
+  --surface:#121b2e;
+  --surface-2:#16223a;
+  --line:#22304a;
+  --ink:#e7ecf3;
+  --muted:#8a97ac;
+  --muted-2:#5f6c81;
+  --key:#4fd1c5;      /* 声明 / Key 的颜色 */
+  --key-dim:#2b5350;
+  --val:#f0a93d;      /* 数据 / 值的颜色 */
+  --val-dim:#5a4423;
+  --danger:#e8636b;
+  --radius:10px;
+  --font-display:'Space Grotesk', 'PingFang SC', sans-serif;
+  --font-body:'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono:'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(1200px 600px at 12% -10%, #14213a 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #122032 0%, transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 
-  /* ---------- NAV ---------- */
-  .nav{
-    position:sticky; top:0; z-index:50;
-    background:rgba(11,20,31,.82);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--border-soft);
-  }
-  .nav-inner{
-    max-width:1120px; margin:0 auto; padding:16px 28px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .brand{
-    font-family:var(--font-mono); font-weight:600; font-size:16px;
-    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--text);
-  }
-  .brand-glyph{
-    width:20px; height:20px; border:1.5px solid var(--amber); border-radius:50%;
-    display:inline-flex; align-items:center; justify-content:center; color:var(--amber); font-size:11px;
-    flex:none;
-  }
-  .brand-sub{color:var(--text-faint); font-weight:400;}
-  .nav-links{display:flex; gap:28px; align-items:center;}
-  .nav-links a{
-    font-family:var(--font-mono); font-size:13px; text-decoration:none; color:var(--text-dim);
-    transition:color .15s;
-  }
-  .nav-links a:hover{color:var(--amber);}
-  .nav-gh{
-    border:1px solid var(--border); border-radius:var(--radius); padding:6px 12px;
-    font-family:var(--font-mono); font-size:13px; text-decoration:none; color:var(--text);
-    transition:border-color .15s, color .15s;
-  }
-  .nav-gh:hover{border-color:var(--amber); color:var(--amber);}
-  @media(max-width:760px){ .nav-links{display:none;} }
+a{color:inherit;text-decoration:none;}
+::selection{background:var(--val-dim);color:var(--val);}
 
-  /* ---------- HERO ---------- */
-  .hero{padding:88px 28px 64px; position:relative;}
-  .hero-eyebrow-row{margin-bottom:22px;}
-  .hero h1{font-size:clamp(34px, 5.4vw, 64px); line-height:1.06;}
-  .hero h1 .hl{color:var(--amber);}
-  .hero-sub{
-    margin-top:22px; max-width:56ch; color:var(--text-dim); font-size:18px; line-height:1.7;
-  }
-  .hero-cta{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
-  .btn{
-    font-family:var(--font-mono); font-size:14px; padding:11px 20px; border-radius:var(--radius);
-    text-decoration:none; cursor:pointer; border:1px solid transparent; display:inline-flex; align-items:center; gap:8px;
-    transition:transform .12s, border-color .15s, background .15s, color .15s;
-  }
-  .btn:active{transform:translateY(1px);}
-  .btn-primary{background:var(--amber); color:#241706; font-weight:600;}
-  .btn-primary:hover{background:#ffc45e;}
-  .btn-ghost{border-color:var(--border); color:var(--text);}
-  .btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--key);
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:16px;
+}
+.eyebrow::before{content:"";width:16px;height:1px;background:var(--key);display:inline-block;}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-.01em;}
+code, .mono{font-family:var(--font-mono);}
 
-  /* ---------- SOCKET DEMO ---------- */
-  .demo{
-    margin-top:56px; border:1px solid var(--border); border-radius:6px; overflow:hidden;
-    background:var(--bg-panel);
-  }
-  .demo-titlebar{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-    padding:11px 18px; border-bottom:1px solid var(--border-soft); background:var(--bg-panel-2);
-    flex-wrap:wrap;
-  }
-  .demo-titlebar-label{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); letter-spacing:.06em;}
-  .demo-dots{display:flex; gap:6px;}
-  .demo-dots span{width:8px; height:8px; border-radius:50%; background:var(--border);}
-  .demo-body{padding:30px; display:grid; grid-template-columns:1fr; gap:28px;}
-  @media(min-width:860px){ .demo-body{grid-template-columns: 1.1fr 1.4fr;} }
+/* ---------- NAV ---------- */
+nav{
+  position:sticky; top:0; z-index:40;
+  backdrop-filter:blur(10px);
+  background:rgba(11,18,32,.82);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:1180px;margin:0 auto;padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-display);font-weight:700;font-size:17px;
+}
+.logo .dot{
+  width:9px;height:9px;border-radius:2px;background:var(--key);
+  box-shadow:0 0 12px var(--key);
+}
+.logo .sub{color:var(--val); font-family:var(--font-mono); font-weight:500;}
+.nav-links{display:flex;gap:28px;font-size:14px;color:var(--muted);}
+.nav-links a:hover{color:var(--ink);}
+.nav-cta{
+  font-family:var(--font-mono);font-size:13px;
+  border:1px solid var(--line);border-radius:7px;
+  padding:7px 14px;color:var(--ink);
+  transition:border-color .15s, background .15s;
+}
+.nav-cta:hover{border-color:var(--key);background:rgba(79,209,197,.08);}
+.nav-links-mobile{display:none;}
+@media(max-width:820px){ .nav-links{display:none;} }
 
-  .plug-panel{
-    border:1px dashed var(--border); border-radius:4px; padding:18px; position:relative;
-    background:linear-gradient(180deg, rgba(255,178,56,.03), transparent);
-  }
-  .plug-panel-label{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); letter-spacing:.08em; margin-bottom:10px; text-transform:uppercase;}
-  .plug-panel pre{margin:0; font-family:var(--font-mono); font-size:13px; color:var(--teal); line-height:1.7; overflow-x:auto;}
-  .plug-panel .k{color:var(--text-dim);}
-  .plug-panel .s{color:var(--amber);}
+/* ---------- HERO ---------- */
+.hero{padding:96px 0 64px;}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:20px;}
+.hero h1{
+  font-size:clamp(34px,5.2vw,58px);
+  line-height:1.08;
+  max-width:820px;
+  color:var(--ink);
+}
+.hero h1 .k{color:var(--key);}
+.hero h1 .v{color:var(--val);}
+.hero p.lede{
+  margin-top:20px;max-width:640px;color:var(--muted);font-size:17px;
+}
+.hero-actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;}
+.tag-pills{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+.pill{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.03em;
+  border:1px solid var(--line);border-radius:999px;
+  padding:5px 13px;color:var(--muted);background:var(--surface);
+}
+.pill.accent{border-color:var(--key-dim);color:var(--key);background:rgba(79,209,197,.07);}
+.btn{
+  font-family:var(--font-mono);font-size:14px;
+  padding:12px 20px;border-radius:8px;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s;
+}
+.btn-primary{background:var(--key);color:#04211f;font-weight:600;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(79,209,197,.25);}
+.btn-ghost{border:1px solid var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:var(--muted-2);}
 
-  .socket-panel{display:flex; flex-direction:column; gap:12px;}
-  .socket{
-    border:1px dashed var(--border); border-radius:4px; padding:12px 14px;
-    display:flex; align-items:center; gap:12px; transition:border-color .3s, background .3s;
-  }
-  .socket.connected{border-style:solid; border-color:var(--teal-dim); background:rgba(87,224,196,.05);}
-  .socket-plug{
-    width:26px; height:26px; border-radius:50%; border:1.5px solid var(--border); flex:none;
-    display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--text-faint);
-    transition:border-color .3s, color .3s, box-shadow .3s;
-  }
-  .socket.connected .socket-plug{border-color:var(--teal); color:var(--teal); box-shadow:0 0 10px rgba(87,224,196,.35);}
-  .socket-meta{display:flex; flex-direction:column; gap:3px; min-width:0; flex:1;}
-  .socket-label{font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint); word-break:break-all;}
-  .socket-value{font-size:15px; color:var(--text); font-weight:500;}
-  .socket-value.empty{color:var(--text-faint); font-style:normal;}
-  .socket-avatar{width:34px; height:34px; border-radius:50%; flex:none; display:block; border:1px solid var(--border-soft);}
+/* ---------- DEMO (signature element) ---------- */
+.demo{
+  margin-top:56px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--surface);
+  overflow:hidden;
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.6);
+}
+.demo-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);
+}
+.demo-tabs{display:flex;gap:4px;}
+.demo-tab{
+  font-family:var(--font-mono);font-size:12.5px;color:var(--muted);
+  padding:7px 12px;border-radius:6px;cursor:pointer;user-select:none;
+  transition:background .15s, color .15s;
+}
+.demo-tab:hover{color:var(--ink);}
+.demo-tab.active{background:var(--surface);color:var(--ink);}
+.demo-actions{display:flex;gap:8px;}
+.demo-btn{
+  font-family:var(--font-mono);font-size:12px;
+  padding:6px 12px;border-radius:6px;border:1px solid var(--line);
+  cursor:pointer;background:transparent;color:var(--ink);
+}
+.demo-btn.run{border-color:var(--key);color:var(--key);}
+.demo-btn.run:hover{background:rgba(79,209,197,.1);}
+.demo-btn.reset:hover{border-color:var(--muted-2);}
+.demo-body{padding:22px 24px;min-height:280px;}
+.pane{display:none;}
+.pane.active{display:block;}
+pre.code{
+  font-family:var(--font-mono);font-size:13.5px;line-height:1.9;
+  color:var(--muted);white-space:pre-wrap;word-break:break-word;
+}
+pre.code .tag{color:#6c7ea3;}
+pre.code .attr-name{color:var(--key);}
+pre.code .attr-val{color:var(--val);}
+pre.code .str{color:#9fd9a0;}
+pre.code .fillval{color:var(--val);font-weight:600;}
+pre.code .punc{color:var(--muted-2);}
 
-  .demo-controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-  .btn-sm{
-    font-family:var(--font-mono); font-size:12.5px; padding:7px 13px; border-radius:var(--radius);
-    border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer;
-    transition:border-color .15s, color .15s;
-  }
-  .btn-sm:hover{border-color:var(--amber); color:var(--amber);}
-  .btn-sm.active{border-color:var(--teal); color:var(--teal);}
+.render-title{
+  font-size:26px;font-weight:700;font-family:var(--font-display);
+  min-height:34px;
+  border-bottom:1px dashed var(--line);padding-bottom:10px;margin-bottom:18px;
+}
+.render-title.blank::after{content:"page.title";font-family:var(--font-mono);font-size:14px;color:var(--muted-2);font-weight:400;}
+.chapters{display:flex;flex-direction:column;gap:10px;}
+.chapter-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);
+  opacity:0;transform:translateY(6px);
+  animation:rowIn .4s ease forwards;
+}
+@keyframes rowIn{to{opacity:1;transform:translateY(0);}}
+.chapter-name{font-weight:600;min-width:160px;}
+.chapter-url{font-family:var(--font-mono);font-size:12.5px;color:var(--key);}
+.fillable{transition:color .3s;}
+.fillable.filled{color:var(--val);}
+.badge-key{
+  font-family:var(--font-mono);font-size:10.5px;color:var(--key);
+  background:rgba(79,209,197,.08);border:1px solid var(--key-dim);
+  padding:1px 6px;border-radius:4px;margin-left:6px;
+}
+.empty-hint{color:var(--muted-2);font-family:var(--font-mono);font-size:13px;}
 
-  .demo-log{
-    border-top:1px solid var(--border-soft); background:#0A121C;
-    padding:12px 18px; font-family:var(--font-mono); font-size:12px; color:var(--teal-dim);
-    min-height:20px; max-height:96px; overflow-y:auto;
-  }
-  .demo-log div{color:var(--teal); opacity:.9; margin-bottom:3px;}
-  .demo-log div:last-child{margin-bottom:0;}
-  .demo-log .muted{color:var(--text-faint);}
+/* ---------- SECTIONS ---------- */
+section{padding:88px 0;border-top:1px solid var(--line);}
+.section-head{max-width:640px;margin-bottom:44px;}
+.section-head h2{font-size:clamp(24px,3.4vw,34px);}
+.section-head p{color:var(--muted);margin-top:12px;font-size:15.5px;}
 
-  .dom-view{display:none; border-top:1px solid var(--border-soft);}
-  .dom-view.show{display:block;}
-  .dom-view pre{margin:0; padding:16px 18px; font-family:var(--font-mono); font-size:12px; color:var(--text-dim); overflow-x:auto; white-space:pre-wrap; word-break:break-all;}
-  .dom-view .attr{color:var(--amber);}
+/* concept walk */
+.walk{
+  display:grid;
+  /* grid-template-columns:repeat(4,1fr);gap:1px; */
+  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+}
+.walk-step{background:var(--surface);padding:24px 22px;}
+.walk-num{font-family:var(--font-mono);font-size:12px;color:var(--muted-2);margin-bottom:10px;}
+.walk-step h3{font-size:16px;margin-bottom:8px;}
+.walk-step p{font-size:13.5px;color:var(--muted);}
+.walk-step code{font-size:12.5px;color:var(--val);}
+@media(max-width:920px){.walk{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.walk{grid-template-columns:1fr;}}
 
-  /* ---------- SECTION SHELL ---------- */
-  section{padding:100px 0;}
-  section.tight{padding:80px 0;}
-  .section-head{max-width:640px; margin-bottom:52px;}
-  .section-head h2{font-size:clamp(28px, 3.4vw, 38px); margin-top:14px;}
-  .section-head p{color:var(--text-dim); margin-top:14px; font-size:16px; line-height:1.7;}
-  .divider{border:none; border-top:1px solid var(--border-soft); margin:0;}
+/* binding cards */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:820px){.grid-2{grid-template-columns:1fr;}}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:24px 24px 22px;
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.card-head h3{font-size:16px;}
+.card-op{font-family:var(--font-mono);font-size:11.5px;color:var(--val);background:var(--val-dim);padding:3px 8px;border-radius:5px;}
+.card pre.code{font-size:12.5px;background:var(--bg-2);padding:14px 16px;border-radius:8px;border:1px solid var(--line);margin-bottom:12px;}
+.card table{width:100%;border-collapse:collapse;font-size:13px;}
+.card table td{padding:7px 0;border-top:1px solid var(--line);color:var(--muted);}
+.card table td:first-child{color:var(--ink);width:38%;font-family:var(--font-mono);font-size:12px;}
 
-  /* ---------- COMPARISON ---------- */
-  .compare-note{
-    display:flex; gap:10px; align-items:flex-start; margin-bottom:16px;
-    font-family:var(--font-mono); font-size:12.5px; padding:10px 12px; border-radius:4px;
-  }
-  .compare-note.bad{background:rgba(255,107,94,.08); color:#FF9086; border:1px solid rgba(255,107,94,.25);}
-  .compare-note.good{background:rgba(87,224,196,.08); color:var(--teal); border:1px solid rgba(87,224,196,.25);}
-  .compare-grid{display:grid; grid-template-columns:1fr; gap:24px;}
-  @media(min-width:900px){ .compare-grid{grid-template-columns:1fr 1fr;} }
-  .code-panel{
-    border:1px solid var(--border); border-radius:5px; overflow:hidden; background:var(--bg-panel);
-  }
-  .code-panel-head{
-    padding:10px 16px; border-bottom:1px solid var(--border-soft); background:var(--bg-panel-2);
-    font-family:var(--font-mono); font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between;
-  }
-  .code-panel-head b{color:var(--text); font-weight:600;}
-  .code-panel pre{
-    margin:0; padding:18px; font-family:var(--font-mono); font-size:12.6px; line-height:1.75;
-    color:var(--text-dim); overflow-x:auto;
-  }
-  .code-panel .tk-key{color:#8DB9FF;}
-  .code-panel .tk-str{color:var(--teal);}
-  .code-panel .tk-com{color:var(--text-faint);}
-  .code-panel .tk-tag{color:var(--amber);}
-  .code-panel .tk-attr{color:#C99BFF;}
+/* addressing */
+.addr-compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;}
+@media(max-width:820px){.addr-compare{grid-template-columns:1fr;}}
+.addr-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;}
+.addr-box h4{font-family:var(--font-mono);font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;}
+.addr-box .example{font-family:var(--font-mono);font-size:14px;color:var(--key);margin-bottom:6px;}
+.context-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.context-table th,.context-table td{text-align:left;padding:10px 12px;border-top:1px solid var(--line);font-size:13.5px;}
+.context-table th{color:var(--muted);font-weight:500;font-family:var(--font-mono);font-size:12px;text-transform:uppercase;}
+.context-table td:last-child{font-family:var(--font-mono);color:var(--val);font-size:13px;}
 
-  /* ---------- PROTOCOL TABLE ---------- */
-  .proto-wrap{border:1px solid var(--border); border-radius:5px; overflow-x:auto; -webkit-overflow-scrolling:touch;}
-  table.proto{width:100%; border-collapse:collapse; font-size:13.5px; min-width:640px;}
-  table.proto th{
-    text-align:left; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--text-faint); padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg-panel-2);
-    font-weight:500;
-  }
-  table.proto td{padding:13px 16px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
-  table.proto tr:last-child td{border-bottom:none;}
-  table.proto tr{transition:background .12s;}
-  table.proto tr:hover{background:rgba(255,178,56,.045);}
-  table.proto .attr-name{font-family:var(--font-mono); color:var(--amber); font-size:12.8px;}
-  table.proto .dom-prop{font-family:var(--font-mono); color:var(--teal); font-size:12.8px;}
-  table.proto .ex{font-family:var(--font-mono); color:var(--text-faint); font-size:12px;}
+.rule-good-bad{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+@media(max-width:700px){.rule-good-bad{grid-template-columns:1fr;}}
+.rb{border-radius:10px;padding:16px 18px;font-family:var(--font-mono);font-size:13px;border:1px solid var(--line);}
+.rb.good{border-color:var(--key-dim);}
+.rb.bad{border-color:#5a2b2f;}
+.rb .tag-mark{font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:8px;}
+.rb.good .tag-mark{color:var(--key);}
+.rb.bad .tag-mark{color:var(--danger);}
+.rb div.line{color:var(--muted);padding:3px 0;}
 
-  .spec-notes{margin-top:20px; display:flex; flex-direction:column; gap:10px;}
-  .spec-note{
-    display:flex; gap:12px; font-size:13.5px; color:var(--text-dim); align-items:flex-start;
-    border-left:2px solid var(--border); padding-left:14px;
-  }
-  .spec-note b{color:var(--text); font-weight:600;}
-  .spec-note .tag{
-    font-family:var(--font-mono); font-size:10.5px; padding:2px 7px; border-radius:2px; flex:none; margin-top:2px;
-    background:rgba(255,178,56,.12); color:var(--amber); letter-spacing:.04em;
-  }
+/* fault tolerance */
+.stream-flow{display:flex;align-items:stretch;gap:14px;margin-top:8px;flex-wrap:wrap;}
+.stream-card{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;}
+.stream-card h5{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.stream-card pre.code{font-size:12px;}
+.arrow-flow{display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:var(--font-mono);}
 
-  /* ---------- PROTOCOL BLOCKS ---------- */
-  .proto-block{border:1px solid var(--border-soft); border-radius:5px; padding:26px 26px 10px; background:var(--bg-panel);}
-  .proto-block + .proto-block{margin-top:18px;}
-  .proto-label{font-family:var(--font-mono); font-size:12px; color:var(--amber); letter-spacing:.06em; text-transform:uppercase; margin-bottom:10px;}
-  .proto-desc{color:var(--text-dim); font-size:14px; line-height:1.7; margin:0 0 16px;}
-  .proto-block .spec-notes{margin:0 0 16px;}
-  .proto-code{border:1px solid var(--border-soft); border-radius:4px; overflow-x:auto; margin:0 0 16px;}
-  .proto-code pre{margin:0; padding:16px 18px; font-family:var(--font-mono); font-size:13px; line-height:1.8; color:var(--text-dim); overflow-x:auto;}
-  .proto-code .tk-str{color:var(--teal);}
-  .proto-code .tk-com{color:var(--text-faint);}
-  .proto-code .tk-tag{color:var(--amber);}
-  .proto-code .tk-attr{color:#C99BFF;}
-  .proto-principles{margin:0 0 16px; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px;}
-  .proto-principles li{font-size:14px; color:var(--text-dim); line-height:1.7; padding-left:16px; position:relative;}
-  .proto-principles li::before{content:"›"; position:absolute; left:0; color:var(--teal); font-family:var(--font-mono);}
-  .proto-principles b{color:var(--text);}
+/* checklist */
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:820px){.checklist{grid-template-columns:1fr;}}
+.check-item{
+  display:flex;gap:12px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:var(--surface);
+}
+.check-item.forbid{border-color:#5a2b2f;}
+.check-mark{font-family:var(--font-mono);font-size:13px;flex-shrink:0;margin-top:1px;}
+.check-item:not(.forbid) .check-mark{color:var(--key);}
+.check-item.forbid .check-mark{color:var(--danger);}
+.check-item h4{font-size:14.5px;margin-bottom:4px;}
+.check-item p{font-size:13px;color:var(--muted);}
 
-  /* ---------- ADVANTAGE CARDS ---------- */
-  .cards{display:grid; grid-template-columns:1fr; gap:1px; background:var(--border-soft); border:1px solid var(--border-soft); border-radius:5px; overflow:hidden;}
-  @media(min-width:860px){ .cards{grid-template-columns:repeat(2,1fr);} }
-  .card{background:var(--bg-panel); padding:30px 26px;}
-  .card-icon{width:34px; height:34px; margin-bottom:20px; color:var(--amber);}
-  .card h3{font-size:18px; margin-bottom:12px;}
-  .card p{color:var(--text-dim); font-size:14px; line-height:1.7; margin:0;}
-  .card ul{margin:14px 0 0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:8px;}
-  .card ul li{font-size:13px; color:var(--text-dim); padding-left:16px; position:relative;}
-  .card ul li::before{content:"›"; position:absolute; left:0; color:var(--teal); font-family:var(--font-mono);}
+/* conformance */
+.tests-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:820px){.tests-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.tests-grid{grid-template-columns:1fr;}}
+.test-chip{
+  border:1px solid var(--line);border-radius:9px;padding:14px 16px;background:var(--surface);
+  font-size:13.5px;display:flex;gap:10px;align-items:baseline;
+}
+.test-chip .n{font-family:var(--font-mono);color:var(--val);font-size:12px;}
+.file-trio{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
+.file-chip{font-family:var(--font-mono);font-size:12.5px;border:1px solid var(--line);border-radius:7px;padding:8px 12px;color:var(--muted);}
+.file-chip b{color:var(--ink);}
 
-  /* ---------- ARCHITECTURE PIPELINE ---------- */
-  .pipeline{display:flex; flex-direction:column; gap:0; position:relative;}
-  @media(min-width:900px){ .pipeline{flex-direction:row;} }
-  .pipe-step{flex:1; position:relative; padding:24px 22px 24px 0;}
-  .pipe-step:not(:last-child){border-bottom:1px dashed var(--border);}
-  @media(min-width:900px){
-    .pipe-step{padding:0 26px 0 0;}
-    .pipe-step:not(:last-child){border-bottom:none; border-right:1px dashed var(--border);}
-  }
-  .pipe-num{font-family:var(--font-mono); font-size:12px; color:var(--amber); margin-bottom:10px; letter-spacing:.06em;}
-  .pipe-step h3{font-size:16.5px; margin-bottom:10px;}
-  .pipe-step p{font-size:13.5px; color:var(--text-dim); line-height:1.7; margin:0;}
-  .pipeline-wrap{padding:32px 0 8px;}
-
-  /* ---------- QUICKSTART ---------- */
-  .qs-steps{display:flex; flex-direction:column; gap:18px;}
-  .qs-step{border:1px solid var(--border); border-radius:5px; overflow:hidden;}
-  .qs-step-head{
-    display:flex; align-items:center; gap:12px; padding:13px 18px; background:var(--bg-panel-2);
-    border-bottom:1px solid var(--border-soft);
-  }
-  .qs-num{
-    width:22px; height:22px; border-radius:50%; border:1px solid var(--amber); color:var(--amber);
-    font-family:var(--font-mono); font-size:11px; display:flex; align-items:center; justify-content:center; flex:none;
-  }
-  .qs-step-head span{font-family:var(--font-mono); font-size:13.5px; color:var(--text);}
-  .qs-body{position:relative; background:var(--bg-panel);}
-  .qs-body pre{margin:0; padding:18px; font-family:var(--font-mono); font-size:13px; color:var(--text-dim); overflow-x:auto; line-height:1.7;}
-  .qs-body pre[hidden]{display:none;}
-  .qs-tabs{
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    padding:10px 12px 0;
-  }
-  .qs-tabs .btn-sm{padding:5px 12px; font-size:12px;}
-  .qs-tabs .copy-btn{position:static; margin-left:auto;}
-  .copy-btn{
-    position:absolute; top:10px; right:12px; font-family:var(--font-mono); font-size:11px; padding:5px 10px;
-    background:var(--bg-raised); border:1px solid var(--border); color:var(--text-dim); border-radius:3px; cursor:pointer;
-    transition:border-color .15s, color .15s;
-  }
-  .copy-btn:hover{border-color:var(--teal); color:var(--teal);}
-  .copy-btn.copied{border-color:var(--teal); color:var(--teal);}
-
-  /* ---------- FOOTER ---------- */
-  footer{border-top:1px solid var(--border-soft); padding:44px 0;}
-  .footer-inner{display:flex; flex-direction:column; gap:24px; justify-content:space-between; align-items:flex-start;}
-  @media(min-width:760px){ .footer-inner{flex-direction:row; align-items:center;} }
-  .footer-brand{display:flex; align-items:center; gap:9px; font-family:var(--font-mono); font-size:14px; color:var(--text-dim);}
-  .footer-links{display:flex; gap:22px; flex-wrap:wrap;}
-  .footer-links a{font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint); text-decoration:none;}
-  .footer-links a:hover{color:var(--amber);}
-  .badge{
-    font-family:var(--font-mono); font-size:11px; padding:3px 9px; border:1px solid var(--border);
-    border-radius:20px; color:var(--text-faint);
-  }
-
-  /* ---------- 移动端收紧（≤560px） ---------- */
-  @media(max-width:560px){
-    .wrap{padding:0 16px;}
-    .nav-inner{padding:14px 16px;}
-    .hero{padding:56px 16px 40px;}
-    .hero-sub{font-size:16px;}
-    section{padding:64px 0;}
-    section.tight{padding:48px 0;}
-    .section-head{margin-bottom:36px;}
-    .demo-body{padding:16px;}
-    .code-panel pre{padding:14px;}
-    .qs-body pre{padding:14px;}
-  }
+/* footer */
+footer{border-top:1px solid var(--line);padding:48px 0 40px;}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-inner .logo{font-size:15px;}
+footer .fmeta{color:var(--muted-2);font-size:13px;font-family:var(--font-mono);}
 </style>
 </head>
 <body>
 
-<nav class="nav">
+<nav>
   <div class="nav-inner">
-    <a class="brand" href="#top">
-      <span class="brand-glyph">⏚</span>
-      data-semantic<span class="brand-sub">/runtime</span>
-    </a>
+    <div class="logo"><span class="dot"></span>data-semantic <span class="sub">v1.0</span></div>
     <div class="nav-links">
-      <a href="#demo">在线示例</a>
-      <a href="#protocol">协议规范</a>
-      <a href="#advantages">范式优势</a>
-      <a href="#architecture">架构设计</a>
-      <a href="#quickstart">快速开始</a>
+      <a href="#demo">试一试</a>
+      <a href="#concept">核心概念</a>
+      <a href="#binding">绑定方式</a>
+      <a href="#addressing">寻址规则</a>
+      <a href="#framework">框架层要求</a>
+      <a href="#runtime">运行时要求</a>
+      <a href="#conformance">一致性测试</a>
     </div>
-    <a class="nav-gh" href="demo.html">Demo ↗</a>
+    <a class="nav-cta" href="./demo.html">Demo示例 →</a>
   </div>
 </nav>
 
-<main id="top">
-
-  <!-- ============ HERO ============ -->
-  <header class="hero wrap">
-    <div class="hero-eyebrow-row">
-      <span class="eyebrow">协议 v1.0 · 运行时 3.4KB GZIP · 零依赖</span>
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="eyebrow">协议规范 · v1.0</div>
+    <h1>给 HTML 装一个<br><span class="v">语义插座</span></h1>
+    <div class="tag-pills">
+      <span class="pill">v1.0</span>
+      <span class="pill">MIT License</span>
+      <span class="pill accent">AI-Native设计</span>
+      <span class="pill accent">IR建模范式</span>
     </div>
-    <h1>给 HTML 装一个<br><span class="hl">语义插座</span></h1>
-    <p class="hero-sub">
-      data-semantic 是面向 AI 时代的声明式数据绑定协议：用原生 <code class="mono">data-*</code> 属性在 HTML 里标出插槽，
-      业务方只需调用一次 <code class="mono">render()</code> 完成注入。UI 结构与数据获取逻辑彻底解耦——纯 HTML、零 JS 侵入，
-      这正是 AI 生成代码天然需要的架构。
-    </p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="#demo">看现场 Demo ↓</a>
-      <a class="btn btn-ghost" href="#quickstart">快速开始</a>
-    </div>
+    <p class="lede">data-semantic 是面向 AI 时代的声明式数据绑定协议。纯 HTML、零 JS 侵入，让 UI 结构与数据获取逻辑彻底解耦 —— 为 AI 生成代码而生。</p>
+    
+    
 
-    <!-- ===== LIVE SOCKET DEMO ===== -->
     <div class="demo" id="demo">
-      <div class="demo-titlebar">
-        <span class="demo-titlebar-label">
-          <span class="demo-dots"><span></span><span></span><span></span></span>
-          &nbsp;&nbsp;由本页实际引入的 runtime.umd.js 驱动，非模拟动画
-        </span>
-        <div class="demo-controls">
-          <button class="btn-sm" id="btnInject">▶ 注入数据</button>
-          <button class="btn-sm" id="btnLang">中 / EN 切换</button>
-          <button class="btn-sm" id="btnDom">&lt;/&gt; 查看渲染后的 DOM</button>
+      <div class="demo-bar">
+        <div class="demo-tabs">
+          <div class="demo-tab active" data-pane="tpl">UI</div>
+          <div class="demo-tab" data-pane="data">数据</div>
+          <div class="demo-tab" data-pane="result">翻译结果</div>
+        </div>
+        <div class="demo-actions">
+          <!-- <button class="demo-btn reset" id="resetBtn">重置</button> -->
+          <button class="demo-btn run" id="runBtn">▶ 运行翻译</button>
         </div>
       </div>
       <div class="demo-body">
-        <div class="plug-panel">
-          <div class="plug-panel-label">// 数据侧 · 与 UI 结构无关</div>
-          <pre id="plugData">const data = {
-  <span class="k">user</span>: {
-    <span class="k">name</span>: <span class="s">"—"</span>,
-    <span class="k">title</span>: <span class="s">"—"</span>,
-    <span class="k">avatar</span>: <span class="s">"—"</span>
+        <div class="pane active" data-pane="tpl">
+<pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;&lt;/a&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+        </div>
+        <div class="pane" data-pane="data">
+<pre class="code"><span class="punc">{</span>
+  <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span>
+    <span class="attr-name">"title"</span><span class="punc">:</span> <span class="str">"Data-Semantic 协议规范 v1.0"</span><span class="punc">,</span>
+    <span class="attr-name">"chapters"</span><span class="punc">:</span> <span class="punc">[</span>
+      <span class="punc">{</span> <span class="attr-name">"name"</span><span class="punc">:</span> <span class="str">"基本概念"</span><span class="punc">,</span> <span class="attr-name">"url"</span><span class="punc">:</span> <span class="str">"https://x.com"</span> <span class="punc">}</span><span class="punc">,</span>
+      <span class="punc">{</span> <span class="attr-name">"name"</span><span class="punc">:</span> <span class="str">"协议原文"</span><span class="punc">,</span> <span class="attr-name">"url"</span><span class="punc">:</span> <span class="str">"https://y.com"</span> <span class="punc">}</span>
+    <span class="punc">]</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></pre>
+        </div>
+        <div class="pane" data-pane="result">
+<pre class="code" id="resultCode"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;&lt;/a&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+          <p class="empty-hint" id="resultHint" style="margin-top:10px;">运行翻译后，data-semantic 属性依然保留在源码中 —— 这是「保留语义声明」的要求。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<section id="concept">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">01 · 范式</div>
+      <h2>先定 Schema，再谈 UI</h2>
+      <p>AI 更擅长语义建模。data-semantic主张先确定领域性的、语义性的IR数据结构，UI侧按schema声明语义槽位，数据侧提供实例数据，运行时 / 编译器完成确定性翻译 —— 建模、UI、数据、翻译器四者分离。</p>
+    </div>
+    <div class="walk walk-code">
+      <div class="walk-step">
+        <div class="walk-num">01 · 领域 IR 建模</div>
+        <h3>先确定要显示什么</h3>
+        <p>只需要标题和章节元信息，就用极简 schema 描述数据结构。Schema 一旦确定，语义与寻址关系随之确定。</p>
+        <pre class="code">{
+  page: {
+    title,        <span class="punc">// 页面标题</span>
+    chapters: [{  <span class="punc">// 章节数组</span>
+      name,       <span class="punc">// 章节名称</span>
+      url         <span class="punc">// 章节地址</span>
+    }]
   }
-}
-DataSemantic.render(data)</pre>
-        </div>
-        <div class="socket-panel" id="socketPanel">
-          <div class="socket" data-key="user.name">
-            <span class="socket-plug">⏚</span>
-            <div class="socket-meta">
-              <span class="socket-label">data-semantic="user.name"</span>
-              <span class="socket-value empty" data-semantic="user.name">— 待注入 —</span>
-            </div>
-          </div>
-          <div class="socket" data-key="user.title">
-            <span class="socket-plug">⏚</span>
-            <div class="socket-meta">
-              <span class="socket-label">data-semantic="user.title"</span>
-              <span class="socket-value empty" data-semantic="user.title">— 待注入 —</span>
-            </div>
-          </div>
-          <div class="socket" data-key="user.avatar">
-            <img class="socket-avatar" data-semantic-alt="user.avatar" alt="— 待注入 —"
-                 src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%231B2E45'/></svg>" />
-            <div class="socket-meta">
-              <span class="socket-label">data-semantic-alt="user.avatar"</span>
-              <span class="socket-value empty" id="avatarAltPreview">alt = "— 待注入 —"</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="demo-log" id="demoLog"><div class="muted">// 等待注入 — 点击「▶ 注入数据」运行 DataSemantic.render()</div></div>
-      <div class="dom-view" id="domView">
-        <pre id="domViewPre"></pre>
-      </div>
-    </div>
-  </header>
-
-  <hr class="divider" />
-
-  <!-- ============ 范式转变 / 对比 ============ -->
-  <section class="tight">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="section-tag">Why Not Another I18N Framework</span>
-        <h2>不是更好的 i18n 框架，<br>是一次范式转变</h2>
-        <p>以国际化为例：传统框架靠命令式代码把数据一条条塞进 DOM，字段越多、胶水代码越多。
-          data-semantic 把绑定关系写进 HTML 本身，新增字段不需要碰一行 JS。</p>
-      </div>
-
-      <div class="compare-grid">
-        <div>
-          <div class="compare-note bad">⚠ 每个字段都要手写一行更新逻辑，10 个字段 = 10 行胶水代码</div>
-          <div class="code-panel">
-            <div class="code-panel-head"><b>i18next</b><span>命令式 · UI 与更新逻辑耦合</span></div>
-            <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">id</span>=<span class="tk-str">"hello"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
-<span class="tk-tag">&lt;div</span> <span class="tk-attr">id</span>=<span class="tk-str">"desc"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
-
-<span class="tk-com">// 每个 DOM 节点都要手动更新</span>
-function renderUI(lang) {
-  i18next.changeLanguage(lang);
-  document.getElementById(<span class="tk-str">'hello'</span>)
-    .textContent = i18next.t(<span class="tk-str">'hello'</span>);
-  document.getElementById(<span class="tk-str">'desc'</span>)
-    .textContent = i18next.t(<span class="tk-str">'desc'</span>);
-  <span class="tk-com">// 有多少字段，就要写多少行……</span>
 }</pre>
-          </div>
-        </div>
-        <div>
-          <div class="compare-note good">✓ 新增字段只需在 HTML 加一个属性，JS 零改动</div>
-          <div class="code-panel">
-            <div class="code-panel-head"><b>data-semantic</b><span>声明式 · UI 与数据解耦</span></div>
-            <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"hello"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
-<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"desc"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
+      </div>
+      <div class="walk-step">
+        <div class="walk-num">02 · UI 声明</div>
+        <h3>按 schema 声明语义槽位</h3>
+        <p>两个核心概念：<b style="color:var(--key);">属性</b>决定渲染到哪、怎么渲染；<b style="color:var(--val);">Key</b> 决定渲染什么、怎么寻址。</p>
+        <pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;&lt;/a&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+      </div>
+      <div class="walk-step">
+        <div class="walk-num">03 · 数据准备</div>
+        <h3>基于同一份 IR 准备实例</h3>
+        <p>与 schema 结构完全对应的实例数据，供运行时 / 编译器在翻译阶段寻址取值。</p>
+        <pre class="code">{
+  <span class="attr-name">"page"</span>: {
+    <span class="attr-name">"title"</span>: <span class="str">"Data-Semantic 协议规范 v1.0"</span>,
+    <span class="attr-name">"chapters"</span>: [
+      { <span class="attr-name">"name"</span>: <span class="str">"基本概念"</span>, <span class="attr-name">"url"</span>: <span class="str">"https://x.com"</span> },
+      { <span class="attr-name">"name"</span>: <span class="str">"协议原文"</span>, <span class="attr-name">"url"</span>: <span class="str">"https://y.com"</span> }
+    ]
+  }
+}</pre>
+      </div>
+      <div class="walk-step">
+        <div class="walk-num">04 · 翻译</div>
+        <h3>结合声明与数据，完成 DOM 翻译</h3>
+        <p>Runtime / Compiler 进行协议运算，翻译范围取决于寻址命中量，未命中部分保持不变。</p>
+        <pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;</span><span class="fillval">Data-Semantic 协议规范 v1.0</span><span class="tag">&lt;/h1&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">基本概念</span><span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://x.com</span><span class="tag">&lt;/a&gt;</span>
+  <span class="tag">&lt;/div&gt;</span> …
+<span class="tag">&lt;/div&gt;</span></pre>
+      </div>
+    </div>
+    <p style="margin-top:24px;color:var(--muted);font-size:14px;max-width:680px;">这种建模、UI、数据、翻译器分离的范式，能够带来巨大的灵活性：<br/>
+* UI生成复杂度低。<br/>
+* UI 与数据可双端独立单测，几乎不需要集成测试，测试成本趋近于零。<br/>
+* 渲染后 <code>data-semantic</code> 属性原样保留，页面结构天然携带可对照的数据语义，为知识源主动向外暴露语义，也为AI精准分析语义，或三方平台提供语义增强，提供了自动化基础。。<br/></p>
+  </div>
+</section>
 
-<span class="tk-com">// 一次调用，自动批量渲染全部绑定</span>
-const locales = {
-  zh: { hello: <span class="tk-str">"你好，世界"</span>, desc: <span class="tk-str">"…"</span> },
-  en: { hello: <span class="tk-str">"Hello, World"</span>, desc: <span class="tk-str">"…"</span> }
-};
-DataSemantic.render(locales[currentLang]);</pre>
+<section id="binding">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">02 · 四种绑定方式</div>
+      <h2>正交组合</h2>
+      <p>内容、属性、可见性、列表容器 —— 四类声明相互独立，可以在同一节点上自由叠加。</p>
+    </div>
+    <div class="grid-2" style="margin-bottom:18px;">
+      <div class="card">
+        <div class="card-head"><h3>内容绑定</h3><span class="card-op">textContent</span></div>
+        <pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span></pre>
+        <table>
+          <tr><td>有效值</td><td>设置 textContent（执行 toString）</td></tr>
+          <tr><td>undefined</td><td>清空内容，开发模式下警告</td></tr>
+          <tr><td>null</td><td>清空内容，不警告</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>属性绑定</h3><span class="card-op">setAttribute</span></div>
+        <pre class="code"><span class="tag">&lt;img</span> <span class="attr-name">data-semantic-src</span>=<span class="attr-val">"user.avatar"</span><span class="tag">&gt;</span></pre>
+        <table>
+          <tr><td>标准属性</td><td>placeholder / title / alt / value / href / src / aria-label / aria-description / content</td></tr>
+          <tr><td>自定义属性</td><td>data-*</td></tr>
+          <tr><td>undefined / null</td><td>移除该属性</td></tr>
+          <tr><td>有效值</td><td>设置属性值（toString），白名单外属性不做处理</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>可见性绑定</h3><span class="card-op">style.display</span></div>
+        <pre class="code"><span class="tag">&lt;div</span> <span class="attr-name">data-semantic-display</span>=<span class="attr-val">"showLogin"</span><span class="tag">&gt;&lt;/div&gt;</span></pre>
+        <table>
+          <tr><td>true / 真值</td><td>display = ''（显示）</td></tr>
+          <tr><td>false / 假值 / "false"</td><td>display = 'none'</td></tr>
+          <tr><td>唯一样式声明</td><td>协议中仅此一处涉及样式</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>列表容器</h3><span class="card-op">实例化innerHTML</span></div>
+        <pre class="code"><span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>…<span class="tag">&lt;/div&gt;</span></pre>
+        <table>
+          <tr><td>innerHTML</td><td>作为列表项模板，按数组长度克隆</td></tr>
+          <tr><td>空数组</td><td>清空子节点，不报错</td></tr>
+          <tr><td>非数组</td><td>违反协议，check 报错</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="addressing">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">03 · Key 寻址与命名</div>
+      <h2>绝对寻址 vs 相对寻址</h2>
+      <p>相对寻址只能由 <code>data-semantic-list</code> 提供上下文，杜绝深层上下文栈带来的语义歧义。</p>
+    </div>
+    <div class="addr-compare">
+      <div class="addr-box">
+        <h4>绝对寻址</h4>
+        <div class="example">page.title</div>
+        <div class="example">page.chapters[0].name</div>
+        <p style="color:var(--muted);font-size:13.5px;margin-top:10px;">从数据根节点开始解析，等价于 <code class="mono">dataRoot.page.title</code>。</p>
+      </div>
+      <div class="addr-box">
+        <h4>相对寻址</h4>
+        <div class="example">.name</div>
+        <div class="example">[0].name</div>
+        <p style="color:var(--muted);font-size:13.5px;margin-top:10px;">必须以 <code class="mono">.</code> 或 <code class="mono">[</code> 开头，相对于最近的 <code class="mono">data-semantic-list</code> 上下文。</p>
+      </div>
+    </div>
+    <table class="context-table">
+      <tr><th>位置</th><th>上下文语义</th></tr>
+      <tr><td>根层级（无列表祖先）</td><td>数据根节点 dataRoot</td></tr>
+      <tr><td>列表项内部</td><td>{listKey}[i]</td></tr>
+      <tr><td>嵌套列表项内部</td><td>最内层的 {listKey}[i]</td></tr>
+    </table>
+
+    <div class="section-head" style="margin-top:48px;margin-bottom:24px;">
+      <div class="eyebrow" style="margin-bottom:12px;">命名规范</div>
+      <p style="margin-top:0;">UI 侧寻址 key 仅允许 base64URL 字符集 + <code class="mono">. [ ]</code>；数据侧字段 key 严禁出现 <code class="mono">. [ ] ?</code> 四个符号。</p>
+    </div>
+    <div class="rule-good-bad">
+      <div class="rb good"><span class="tag-mark">✓ 正确</span>
+        <div class="line">"a-a_b": "..."</div>
+        <div class="line">data-semantic="biology.animal.bear"</div>
+      </div>
+      <div class="rb bad"><span class="tag-mark">✗ 错误</span>
+        <div class="line">"aa.b[": "包含特殊符号"</div>
+        <div class="line">"aa.?": "与可选链冲突"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">04 · 容错与翻译模式</div>
+      <div>
+      <h2>容错</h2>
+      <p>协议规定翻译过程是增量方式，可多次翻译、流式翻译，这意味着允许只传入部分数据，这涉及了容错规则支持。每一级寻址默认自带 <code class="mono">?.</code> 效果：链路中任意环节为 undefined / null 时不报错，保持现状；类型不匹配时仍会正常报错。</p>
+    
+    <div class="stream-flow">
+      <div class="stream-card">
+        <h5>第一次传入</h5>
+<pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"title"</span><span class="punc">:</span> <span class="str">"…"</span> <span class="punc">}</span> <span class="punc">}</span></pre>
+        <p style="font-size:12.5px;color:var(--muted);">page.chapters 寻址不到，保持原状，不报错</p>
+      </div>
+      <div class="arrow-flow">→</div>
+      <div class="stream-card">
+        <h5>第二次传入</h5>
+<pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"chapters"</span><span class="punc">:</span> <span class="punc">[…]</span> <span class="punc">}</span> <span class="punc">}</span></pre>
+        <p style="font-size:12.5px;color:var(--muted);">此次命中 chapters，触发列表翻译</p>
+      </div>
+</div>
+<div>
+    <h2>翻译模式</h2>
+    <div class="rule-good-bad" style="margin-top:28px;grid-template-columns:1fr 1fr;">
+      <div class="rb good"><span class="tag-mark">叶子节点</span>
+        <div class="line">增量翻译：只更新本次命中的部分，未命中保持不变</div>
+      </div>
+      <div class="rb good" style="border-color:var(--val);"><span class="tag-mark" style="color:var(--val);">列表容器</span>
+        <div class="line">全量翻译：数组长度变化时整个列表重新渲染</div>
+      </div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section id="framework">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">05 · 框架层要求</div>
+      <h2>开放语义网络</h2>
+      <p>data-semantic 不只是渲染工具，也是一份对三方开放的语义声明 —— 框架实现必须保证以下两点。</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>自动注入协议头</h3><span class="card-op">&lt;head&gt;</span></div>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Runtime 首次渲染、Compiler 编译产出时，都必须自动向页面 <code class="mono">&lt;head&gt;</code> 注入协议声明，向三方开放本页面遵循的语义化标记。</p>
+        <pre class="code"><span class="tag">&lt;meta</span> <span class="attr-name">name</span>=<span class="attr-val">"data-semantic"</span> <span class="attr-name">content</span>=<span class="attr-val">"1.0"</span> <span class="tag">/&gt;</span></pre>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>保留语义声明</h3><span class="card-op">不可剥离</span></div>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">编译后的 UI 必须继续保留 <code class="mono">data-semantic</code> 属性；</p>
+        <div class="rule-good-bad" style="margin-top:0;">
+          <div class="rb good"><span class="tag-mark">✓ 正确</span>
+            <div class="line">&lt;p data-semantic="content"&gt;这是内容&lt;/p&gt;</div>
+          </div>
+          <div class="rb bad"><span class="tag-mark">✗ 错误</span>
+            <div class="line">&lt;p&gt;这是标题&lt;/p&gt;</div>
+            <div class="line" style="color:var(--muted-2);">语义声明被剥离，三方无法分析</div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <hr class="divider" />
-
-  <!-- ============ 协议规范 ============ -->
-  <section id="protocol">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="section-tag">The Protocol</span>
-        <h2>协议规范</h2>
-        <p>协议由五个正交部分定义：声明方式、寻址方式、语义化要求、渲染方式与数据边界。
-          业务方只需声明插槽、调用一次 <code class="mono">render()</code>，其余交给运行时。</p>
-      </div>
-
-      <!-- 01 声明方式 -->
-      <div class="proto-block">
-        <div class="proto-label">01 / 声明方式</div>
-        <p class="proto-desc">三种基础的正交语义声明需求：填什么内容、填到哪里、要不要显示。</p>
-        <div class="proto-wrap">
-          <table class="proto">
-            <thead>
-              <tr><th>属性</th><th>绑定 DOM</th><th>用途</th><th>示例</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="attr-name">data-semantic</td><td class="dom-prop">textContent</td><td>基础文本内容</td><td class="ex">data-semantic="user.name"</td></tr>
-              <tr><td class="attr-name">data-semantic-display</td><td class="dom-prop">style.display</td><td>显示 / 隐藏控制</td><td class="ex">&lt;h1 data-semantic-display="user.isVip"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-placeholder</td><td class="dom-prop">placeholder</td><td>输入框占位符</td><td class="ex">&lt;input data-semantic-placeholder="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-value</td><td class="dom-prop">value</td><td>表单初始值（单向）</td><td class="ex">&lt;input data-semantic-value="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-title</td><td class="dom-prop">title</td><td>鼠标悬停提示</td><td class="ex">&lt;button data-semantic-title="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-alt</td><td class="dom-prop">alt</td><td>图片替代文本</td><td class="ex">&lt;img data-semantic-alt="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-src</td><td class="dom-prop">src</td><td>动态资源链接</td><td class="ex">&lt;img/video/iframe data-semantic-src="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-href</td><td class="dom-prop">href</td><td>动态跳转地址</td><td class="ex">&lt;a data-semantic-href="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-aria-label</td><td class="dom-prop">aria-label</td><td>无障碍标签</td><td class="ex">&lt;button data-semantic-aria-label="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-aria-description</td><td class="dom-prop">aria-description</td><td>无障碍详细描述</td><td class="ex">&lt;div role="tooltip" …&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-content</td><td class="dom-prop">content</td><td>meta 动态内容</td><td class="ex">&lt;meta data-semantic-content="…"&gt;</td></tr>
-              <tr><td class="attr-name">data-semantic-data-*</td><td class="dom-prop">data-*（透传）</td><td>自定义 data 属性</td><td class="ex">data-semantic-data-user-id="…"</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 补充原则 -->
-      <div class="proto-block">
-        <div class="proto-label">补充原则</div>
-        <ul class="proto-principles">
-          <li><b>DISPLAY</b> <code class="mono">data-semantic-display</code> 是 style 的唯一特例：布尔值控制显示/隐藏（<code class="mono">true</code>→显示、<code class="mono">false</code>→<code class="mono">none</code>），字符串值原样透传（如 <code class="mono">flex</code>、<code class="mono">grid</code>）。</li>
-          <li><b>SECURITY</b> 事件处理器、<code class="mono">style</code>、全局标识符、<code class="mono">iframe</code> 等内联脚本类目标一律不在白名单内，任意 <code class="mono">data-semantic-style</code> 均被拒绝。</li>
-        </ul>
-      </div>
-
-      <!-- 02 寻址方式 -->
-      <div class="proto-block">
-        <div class="proto-label">02 / 寻址方式</div>
-        <p class="proto-desc">UI 侧声明的槽位值，对应数据侧的 key 路径。槽位命名遵循标准 JSON 寻址（点分隔），支持嵌套与数组索引。</p>
-        <div class="proto-code">
-          <pre><span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tk-tag">&gt;&lt;/p&gt;</span>
-<span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"user.addresses.0.city"</span><span class="tk-tag">&gt;&lt;/p&gt;</span></pre>
-        </div>
-        <div class="spec-notes">
-          <div class="spec-note"><span class="tag">KEY PATH</span> key 路径遵循标准 JSON 寻址（点分隔），<b>业务字段名禁止包含 <code class="mono">.</code></b>，否则无法被路径解析命中。</div>
-        </div>
-      </div>
-
-      <!-- 03 语义化要求 -->
-      <div class="proto-block">
-        <div class="proto-label">03 / 语义化要求</div>
-        <p class="proto-desc">runtime 加载时自动向页面 <code class="mono">&lt;head&gt;</code> 注入语义协议信息，向三方开放声明本页面遵循 data-semantic 协议；槽位命名遵循语义化表示，尽可能避免纯 id 式声明。</p>
-        <div class="proto-code">
-          <pre><span class="tk-com">&lt;!-- runtime 加载时自动注入 --&gt;</span>
-<span class="tk-tag">&lt;meta</span> <span class="tk-attr">name</span>=<span class="tk-str">"data-semantic"</span> <span class="tk-attr">content</span>=<span class="tk-str">"1.0"</span> <span class="tk-tag">/&gt;</span>
-
-<span class="tk-com">&lt;!-- ❌ 纯 id 式命名，语义丢失 --&gt;</span>
-<span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"abcd123"</span><span class="tk-tag">&gt;&lt;/p&gt;</span></pre>
-        </div>
-      </div>
-
-      <!-- 04 渲染方式 -->
-      <div class="proto-block">
-        <div class="proto-label">04 / 渲染方式</div>
-        <p class="proto-desc">运行时只需暴露一个至简的 <code class="mono">render(data)</code>，要求传入合法 JSON。运行时只负责<b>已有结构的数据同步</b>，不负责生成 DOM；数组收缩时多余节点自动清空但不删除。</p>
-        <div class="proto-code">
-          <pre><span class="tk-com">// 声明插槽（HTML）</span>
-<span class="tk-tag">&lt;h1</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tk-tag">&gt;&lt;/h1&gt;</span>
-
-<span class="tk-com">// 一次注入（JS）</span>
-DataSemantic.render({ page: { title: <span class="tk-str">"欢迎使用 data-semantic"</span> } });</pre>
-        </div>
-      </div>
-
-      <!-- 05 数据边界 -->
-      <div class="proto-block">
-        <div class="proto-label">05 / 数据边界</div>
-        <p class="proto-desc">数组与标量存在明确边界，开发者与运行时必须遵循，避免对协议行为的误解。</p>
-        <div class="proto-code">
-          <pre><span class="tk-com">// ✅ 数组必须整体传入（deepMerge 不递归合并数组）</span>
-render({ pages: { list: [<span class="tk-str">'a'</span>, <span class="tk-str">'b'</span>] } });
-
-<span class="tk-com">// ❌ 用 undefined 占位更新数组元素，会被整体替换</span>
-render({ pages: { list: [undefined, <span class="tk-str">'x'</span>] } });</pre>
-        </div>
-        <div class="proto-code">
-          <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list.0.name"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>  <span class="tk-com">// ✅ 标量叶子</span>
-<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>  <span class="tk-com">// ❌ 绑定对象/数组，跳过渲染并告警</span></pre>
-        </div>
-      </div>
+<section id="runtime">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">06 · 运行时与编译器要求</div>
+      <h2>安全边界是协议的一部分</h2>
+      <p>数据必须是纯JSON；以下模式一律视为语义污染，check 阶段明确拒绝。</p>
     </div>
-  </section>
-
-  <hr class="divider" />
-
-  <!-- ============ 四大优势 ============ -->
-  <section id="advantages">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="section-tag">AI-Native Advantages</span>
-        <h2>为什么这对 AI 生成代码更友好</h2>
-        <p>相比命令式框架的强耦合，data-semantic 把「结构」和「数据」两个关注点彻底分离，三方各自独立演进。</p>
-      </div>
-      <div class="cards">
-        <div class="card">
-          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 3v3M16 3v3M8 18v3M16 18v3M3 8h3M3 16h3M18 8h3M18 16h3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-          <h3>UI 复杂度低</h3>
-          <p>AI 只需生成带语义声明的纯 HTML 结构——这正是它的强项。新增字段只需加一个 <code class="mono">data-semantic</code> 属性，无需编写任何绑定代码。</p>
-        </div>
-        <div class="card">
-          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M8.5 7.5L15.5 11M8.5 16.5L15.5 13"/></svg>
-          <h3>协作解耦</h3>
-          <p>设计端、前端、后端可并行工作，互不阻塞。</p>
-          <ul>
-            <li>数据侧（i18n 文件 / API）可独立增删字段，不影响 UI</li>
-            <li>UI 侧（HTML 模板）可自由改布局，不担心破坏绑定</li>
-          </ul>
-        </div>
-        <div class="card">
-          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-          <h3>测试成本趋近于零</h3>
-          <p>UI 与数据可双端独立单测，几乎不需要集成测试。</p>
-          <ul>
-            <li>UI 侧：原生 HTML，直接验证视觉与响应式布局</li>
-            <li>数据侧：纯 JSON，Node.js 环境独立测试</li>
-            <li>集成层：只有 <code class="mono">render()</code> 一座桥，逻辑简单到几乎无需测试</li>
-          </ul>
-        </div>
-        <div class="card">
-          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20.6 13.4L13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
-          <h3>保留语义</h3>
-          <p>渲染后 <code class="mono">data-semantic</code> 属性原样保留，页面结构自始至终携带数据语义，供三方平台精准分析。</p>
-          <ul>
-            <li>结构即语义：<code class="mono">data-semantic="page.title"</code> 永久声明「此处是页面标题」</li>
-            <li>协议声明：加载时自动注入 <code class="mono">&lt;meta name="data-semantic" content="1.0"&gt;</code></li>
-          </ul>
-        </div>
-      </div>
+    <div class="checklist">
+      <div class="check-item forbid"><span class="check-mark">✗</span><div><h4>事件处理函数</h4><p>data-semantic-onclick 等一律禁止</p></div></div>
+      <div class="check-item forbid"><span class="check-mark">✗</span><div><h4>样式注入</h4><p>data-semantic-style 禁止，display 除外</p></div></div>
+      <div class="check-item forbid"><span class="check-mark">✗</span><div><h4>非纯 JSON 数据</h4><p>dataRoot 必须是 Plain Object，禁止根数组</p></div></div>
+      <div class="check-item forbid"><span class="check-mark">✗</span><div><h4>危险协议注入</h4><p>iframe data-semantic-src 禁止 javascript: / data: / vbscript:</p></div></div>
+      <div class="check-item"><span class="check-mark">✓</span><div><h4>inspect(template)</h4><p>返回语义节点扁平数组：tag / key / type / selector / line</p></div></div>
+      <div class="check-item"><span class="check-mark">✓</span><div><h4>check(template, data)</h4><p>返回 valid / errors（违反协议）/ warnings（数据缺失）</p></div></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <hr class="divider" />
-
-  <!-- ============ 架构：渲染模型 ============ -->
-  <section id="architecture">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="section-tag">Rendering Model</span>
-        <h2>细粒度增量渲染</h2>
-        <p>运行时以「槽位索引 + 细粒度增量渲染」为核心，首次渲染建立索引，此后每次调用只更新真正变化的槽位。</p>
-      </div>
-
-      <div class="pipeline-wrap">
-        <div class="pipeline">
-          <div class="pipe-step">
-            <div class="pipe-num">01 / 槽位索引</div>
-            <h3>建立 key → 元素索引</h3>
-            <p>首次 render() 扫描作用域内全部绑定，缓存 key 到元素列表的映射，后续渲染不再全量扫描 DOM。</p>
-          </div>
-          <div class="pipe-step">
-            <div class="pipe-num">02 / 细粒度渲染</div>
-            <h3>只更新变化的槽位</h3>
-            <p>对数据做纯增量深合并，仅收集本次传入的叶子路径并更新对应槽位；未涉及的槽位保持原值，互不干扰。</p>
-          </div>
-          <div class="pipe-step">
-            <div class="pipe-num">03 / 结构自愈</div>
-            <h3>MutationObserver 兜底</h3>
-            <p>监听结构与 data-semantic* 属性变化，增量重建索引，把已有数据自动补渲染到新插入的节点。</p>
-          </div>
-          <div class="pipe-step">
-            <div class="pipe-num">04 / 流式友好</div>
-            <h3>为 AI 流式输出而生</h3>
-            <p>数据可小块高频注入，每次渲染只更新注入字段对应的槽位；删除字段用显式 <code class="mono">undefined</code> 表达。</p>
-          </div>
-        </div>
-      </div>
+<section id="conformance">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">07 · 一致性测试</div>
+      <h2>Runtime 与 Compiler，输出必须一致</h2>
+      <p>每个测试用例是一个独立目录，Runtime runner 与 Compiler runner 各自执行，并与 expected.html 比对。</p>
     </div>
-  </section>
-
-  <hr class="divider" />
-
-  <!-- ============ 快速开始 ============ -->
-  <section id="quickstart">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="section-tag">Get Started</span>
-        <h2>快速开始</h2>
-        <p>三步完成接入：声明插槽、引入运行时、注入数据。</p>
-      </div>
-
-      <div class="qs-steps">
-        <div class="qs-step">
-          <div class="qs-step-head"><span class="qs-num">1</span><span>在 HTML 中声明数据插槽</span></div>
-          <div class="qs-body">
-            <button class="copy-btn" data-copy-target="qs1">复制</button>
-            <pre id="qs1">&lt;div data-semantic="hello"&gt;&lt;/div&gt;</pre>
-          </div>
-        </div>
-        <div class="qs-step">
-          <div class="qs-step-head"><span class="qs-num">2</span><span>引入运行时</span></div>
-          <div class="qs-body">
-            <div class="qs-tabs">
-              <button type="button" class="btn-sm qs-tab active" data-qs-panel="qs2-umd">UMD · script 标签</button>
-              <button type="button" class="btn-sm qs-tab" data-qs-panel="qs2-esm">ESM · import</button>
-              <button class="copy-btn" data-copy-target="qs2-umd">复制</button>
-            </div>
-            <pre id="qs2-umd">&lt;script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"&gt;&lt;/script&gt;</pre>
-            <pre id="qs2-esm" hidden>npm i data-semantic
-import DataSemantic from "data-semantic";</pre>
-          </div>
-        </div>
-        <div class="qs-step">
-          <div class="qs-step-head"><span class="qs-num">3</span><span>用相同的 key 注入数据</span></div>
-          <div class="qs-body">
-            <button class="copy-btn" data-copy-target="qs3">复制</button>
-            <pre id="qs3">const data = { hello: "你好，世界" }
-DataSemantic.render(data)</pre>
-          </div>
-        </div>
-      </div>
+    <div class="tests-grid">
+      <div class="test-chip"><span class="n">01</span>绝对键绑定</div>
+      <div class="test-chip"><span class="n">02</span>相对键绑定</div>
+      <div class="test-chip"><span class="n">03</span>数字键绑定（方括号）</div>
+      <div class="test-chip"><span class="n">04</span>列表渲染（基础）</div>
+      <div class="test-chip"><span class="n">05</span>空列表</div>
+      <div class="test-chip"><span class="n">06</span>带相对键的嵌套列表</div>
+      <div class="test-chip"><span class="n">07</span>带绝对键的列表（跳出上下文）</div>
+      <div class="test-chip"><span class="n">08</span>属性绑定</div>
+      <div class="test-chip"><span class="n">09</span>数据缺失（undefined / null）</div>
+      <div class="test-chip"><span class="n">10</span>多重绑定</div>
+      <div class="test-chip"><span class="n">11</span>非数组列表数据源（反向）</div>
+      <div class="test-chip"><span class="n">12</span>禁止模式（反向）</div>
     </div>
-  </section>
-
-</main>
+    <div class="file-trio">
+      <div class="file-chip"><b>template.html</b> — HTML 模板</div>
+      <div class="file-chip"><b>data.json</b> — 输入数据</div>
+      <div class="file-chip"><b>expected.html</b> — 预期渲染输出</div>
+    </div>
+  </div>
+</section>
 
 <footer>
   <div class="wrap footer-inner">
-    <div class="footer-brand">
-      <span class="brand-glyph" style="width:18px;height:18px;font-size:10px;">⏚</span>
-      data-semantic · HTML 原生的语义插座协议
-    </div>
-    <div class="footer-links">
-      <a href="#protocol">协议规范</a>
-      <a href="#quickstart">快速开始</a>
-      <a href="https://github.com/doc-war/data-semantic" target="_blank" rel="noopener">GitHub</a>
-      <span class="badge">v1.0 · MIT</span>
-    </div>
+    <div class="logo"><span class="dot"></span>data-semantic</div>
+    <div class="fmeta">协议规范 v1.0 · 遵循开放语义网络声明</div>
   </div>
 </footer>
 
-<script src="https://unpkg.com/data-semantic/dist/runtime.umd.js"></script>
 <script>
 (function(){
-  var socketPanel = document.getElementById('socketPanel');
-  var demoLog = document.getElementById('demoLog');
-  var domView = document.getElementById('domView');
-  var domViewPre = document.getElementById('domViewPre');
-  var avatarAltPreview = document.getElementById('avatarAltPreview');
-  var btnInject = document.getElementById('btnInject');
-  var btnLang = document.getElementById('btnLang');
-  var btnDom = document.getElementById('btnDom');
-  var plugData = document.getElementById('plugData');
-
-  var locales = {
-    zh: { user: { name: "陈小满", title: "高级前端工程师", avatar: "陈小满的头像" } },
-    en: { user: { name: "Alex Chen", title: "Senior Frontend Engineer", avatar: "Alex Chen's avatar" } }
-  };
-  var lang = 'zh';
-  var injected = false;
-
-  function escapeHtml(s){
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function updatePlugPreview(){
-    var d = locales[lang].user;
-    plugData.innerHTML =
-      'const data = {\n' +
-      '  <span class="k">user</span>: {\n' +
-      '    <span class="k">name</span>: <span class="s">"' + escapeHtml(d.name) + '"</span>,\n' +
-      '    <span class="k">title</span>: <span class="s">"' + escapeHtml(d.title) + '"</span>,\n' +
-      '    <span class="k">avatar</span>: <span class="s">"' + escapeHtml(d.avatar) + '"</span>\n' +
-      '  }\n' +
-      '}\n' +
-      'DataSemantic.render(data)';
-  }
-
-  function log(msg, muted){
-    var line = document.createElement('div');
-    if(muted) line.className = 'muted';
-    line.textContent = msg;
-    demoLog.appendChild(line);
-    demoLog.scrollTop = demoLog.scrollHeight;
-    while(demoLog.children.length > 6){ demoLog.removeChild(demoLog.firstChild); }
-  }
-
-  function markConnected(){
-    var sockets = socketPanel.querySelectorAll('.socket');
-    sockets.forEach(function(s, i){
-      setTimeout(function(){
-        s.classList.add('connected');
-        s.querySelector('.socket-value, #avatarAltPreview')?.classList.remove('empty');
-      }, i * 110);
-    });
-  }
-
-  function refreshAvatarAltPreview(){
-    var img = socketPanel.querySelector('.socket-avatar');
-    avatarAltPreview.textContent = 'alt = "' + img.getAttribute('alt') + '"';
-    avatarAltPreview.classList.remove('empty');
-  }
-
-  function updateDomView(){
-    if(!domView.classList.contains('show')) return;
-    var html = socketPanel.outerHTML
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/(data-semantic[a-z-]*)=(&quot;[^&]*?&quot;)/g, '<span class="attr">$1</span>=$2');
-    domViewPre.innerHTML = html;
-  }
-
-  btnInject.addEventListener('click', function(){
-    var data = locales[lang];
-    window.DataSemantic.render(data);
-    refreshAvatarAltPreview();
-    markConnected();
-    injected = true;
-    log('DataSemantic.render(data) → 已注入 user.name / user.title / user.avatar');
-    updateDomView();
-    btnInject.textContent = '↻ 重新注入';
-  });
-
-  btnLang.addEventListener('click', function(){
-    lang = (lang === 'zh') ? 'en' : 'zh';
-    updatePlugPreview();
-    if(injected){
-      window.DataSemantic.render(locales[lang]);
-      refreshAvatarAltPreview();
-      log('语言切换 → ' + (lang === 'zh' ? '中文' : 'English') + '，仅重渲染变化的槽位');
-      updateDomView();
-    } else {
-      log('已切换预览语言为 ' + (lang === 'zh' ? '中文' : 'English') + '，点击「▶ 注入数据」查看效果', true);
-    }
-  });
-
-  btnDom.addEventListener('click', function(){
-    domView.classList.toggle('show');
-    if(domView.classList.contains('show')){
-      updateDomView();
-      btnDom.classList.add('active');
-    } else {
-      btnDom.classList.remove('active');
-    }
-  });
-
-  document.querySelectorAll('.copy-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var target = document.getElementById(btn.getAttribute('data-copy-target'));
-      var text = target.textContent;
-      navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
-        btn.textContent = '已复制'; btn.classList.add('copied');
-        setTimeout(function(){ btn.textContent = '复制'; btn.classList.remove('copied'); }, 1400);
-      });
+  var tabs = document.querySelectorAll('.demo-tab');
+  var panes = document.querySelectorAll('.pane');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('active');});
+      panes.forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      document.querySelector('.pane[data-pane="'+t.dataset.pane+'"]').classList.add('active');
     });
   });
 
-  document.querySelectorAll('.qs-tab').forEach(function(tab){
-    tab.addEventListener('click', function(){
-      var body = tab.closest('.qs-body');
-      var panelId = tab.getAttribute('data-qs-panel');
-      body.querySelectorAll('.qs-tab').forEach(function(t){
-        t.classList.toggle('active', t === tab);
-      });
-      body.querySelectorAll('.qs-body > pre').forEach(function(pre){
-        pre.hidden = (pre.id !== panelId);
-      });
-      var copy = body.querySelector('.copy-btn');
-      if(copy) copy.setAttribute('data-copy-target', panelId);
-    });
-  });
+  var runBtn = document.getElementById('runBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var outTitle = document.getElementById('outTitle');
+  var outChapters = document.getElementById('outChapters');
+  var emptyHint = document.getElementById('emptyHint');
+  var resultCode = document.getElementById('resultCode');
+  var resultHint = document.getElementById('resultHint');
 
-  updatePlugPreview();
+  var chapters = [
+    {name:'基本概念', url:'https://x.com'},
+    {name:'协议原文', url:'https://y.com'}
+  ];
+
+  var emptyResultHTML = resultCode.innerHTML;
+  var filledResultHTML =
+'<span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;</span><span class="fillval">Data-Semantic 协议规范 v1.0</span><span class="tag">&lt;/h1&gt;</span>\n' +
+'<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>\n' +
+'  <span class="tag">&lt;div&gt;</span>\n' +
+'    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">基本概念</span><span class="tag">&lt;/p&gt;</span>\n' +
+'    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://x.com</span><span class="tag">&lt;/a&gt;</span>\n' +
+'  <span class="tag">&lt;/div&gt;</span>\n' +
+'  <span class="tag">&lt;div&gt;</span>\n' +
+'    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">协议原文</span><span class="tag">&lt;/p&gt;</span>\n' +
+'    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://y.com</span><span class="tag">&lt;/a&gt;</span>\n' +
+'  <span class="tag">&lt;/div&gt;</span>\n' +
+'<span class="tag">&lt;/div&gt;</span>';
+
+  function typeInto(el, text, cb){
+    el.textContent = '';
+    var i = 0;
+    var timer = setInterval(function(){
+      el.textContent += text[i];
+      i++;
+      if(i >= text.length){ clearInterval(timer); if(cb) cb(); }
+    }, 22);
+  }
+
+  function reset(){
+    outTitle.classList.add('blank');
+    outTitle.textContent = '';
+    outChapters.innerHTML = '';
+    emptyHint.style.display = 'block';
+    resultCode.innerHTML = emptyResultHTML;
+    resultHint.style.display = 'block';
+  }
+
+  function run(){
+    // switch to result (翻译后源码) tab first
+    tabs.forEach(function(x){x.classList.remove('active');});
+    panes.forEach(function(x){x.classList.remove('active');});
+    document.querySelector('.demo-tab[data-pane="result"]').classList.add('active');
+    document.querySelector('.pane[data-pane="result"]').classList.add('active');
+
+    resultCode.style.opacity = 0;
+    setTimeout(function(){
+      resultCode.innerHTML = filledResultHTML;
+      resultCode.style.transition = 'opacity .4s';
+      resultCode.style.opacity = 1;
+    }, 150);
+
+    // build the clean rendered view in the background
+    emptyHint.style.display = 'none';
+    outTitle.classList.remove('blank');
+    outChapters.innerHTML = '';
+
+    typeInto(outTitle, 'Data-Semantic 协议规范 v1.0', function(){
+      chapters.forEach(function(ch, idx){
+        setTimeout(function(){
+          var row = document.createElement('div');
+          row.className = 'chapter-row';
+          row.innerHTML =
+            '<span class="chapter-name">'+ch.name+'</span>' +
+            '<span class="chapter-url">'+ch.url+'</span>';
+          outChapters.appendChild(row);
+        }, idx * 260);
+      });
+    });
+  }
+
+  runBtn.addEventListener('click', run);
+  resetBtn.addEventListener('click', reset);
 })();
 </script>
+
 </body>
 </html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>协议规范 · data-semantic</title>
+<meta name="description" content="data-semantic 协议规范参考文档：声明方式、寻址方式、display 绑定、list 容器、数据边界、安全约束、协议 meta 与编译器规则。" />
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="data-semantic" />
+<meta property="og:title" content="协议规范 · data-semantic" />
+<meta property="og:description" content="data-semantic 协议规范参考文档：声明方式、寻址方式、display 绑定、list 容器、数据边界、安全约束、协议 meta 与编译器规则。" />
+<meta property="og:url" content="https://doc-war.com/protocol.html" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:image" content="https://doc-war.com/img/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+SC:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B141F;
+    --bg-panel:#101B2A;
+    --bg-panel-2:#152438;
+    --bg-raised:#1B2E45;
+    --grid-line:rgba(141,160,184,.07);
+    --border:rgba(141,160,184,.22);
+    --border-soft:rgba(141,160,184,.13);
+    --text:#EDEAE0;
+    --text-dim:#8DA0B8;
+    --text-faint:#5B6E85;
+    --amber:#FFB238;
+    --amber-dim:#8A6423;
+    --teal:#57E0C4;
+    --teal-dim:#2E6156;
+    --red:#FF6B5E;
+    --font-display:'Space Grotesk', 'IBM Plex Sans SC', sans-serif;
+    --font-body:'IBM Plex Sans', 'IBM Plex Sans SC', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.6;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:40px 40px;
+  }
+  ::selection{background:var(--amber-dim); color:var(--amber);}
+  a{color:inherit;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{content:"◈"; font-size:11px;}
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; margin:0; letter-spacing:-.01em;}
+  code, .mono{font-family:var(--font-mono);}
+  .section-tag{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-faint);
+    letter-spacing:.08em; text-transform:uppercase;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,20,31,.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .nav-inner{
+    max-width:1120px; margin:0 auto; padding:16px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{
+    font-family:var(--font-mono); font-weight:600; font-size:16px;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--text);
+  }
+  .brand-glyph{
+    width:20px; height:20px; border:1.5px solid var(--amber); border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center; color:var(--amber); font-size:11px;
+    flex:none;
+  }
+  .brand-sub{color:var(--text-faint); font-weight:400;}
+  .nav-links{display:flex; gap:28px; align-items:center;}
+  .nav-links a{
+    font-family:var(--font-mono); font-size:13px; text-decoration:none; color:var(--text-dim);
+    transition:color .15s;
+  }
+  .nav-links a:hover{color:var(--amber);}
+  .nav-links a.active{color:var(--amber);}
+  .nav-gh{
+    border:1px solid var(--border); border-radius:var(--radius); padding:6px 12px;
+    font-family:var(--font-mono); font-size:13px; text-decoration:none; color:var(--text);
+    transition:border-color .15s, color .15s;
+  }
+  .nav-gh:hover{border-color:var(--amber); color:var(--amber);}
+  @media(max-width:760px){ .nav-links{display:none;} }
+
+  /* ---------- HERO ---------- */
+  .hero{padding:88px 28px 64px; position:relative;}
+  .hero h1{font-size:clamp(34px, 5.4vw, 64px); line-height:1.06;}
+  .hero h1 .hl{color:var(--amber);}
+  .hero-sub{
+    margin-top:22px; max-width:56ch; color:var(--text-dim); font-size:18px; line-height:1.7;
+  }
+  .hero-meta{display:flex; gap:12px; margin-top:28px; flex-wrap:wrap;}
+  .hero-badge{
+    font-family:var(--font-mono); font-size:12px; padding:5px 12px;
+    border:1px solid var(--border); border-radius:20px; color:var(--text-dim);
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:52px;}
+  .section-head h2{font-size:clamp(28px, 3.4vw, 38px); margin-top:14px;}
+  .section-head p{color:var(--text-dim); margin-top:14px; font-size:16px; line-height:1.7;}
+  .divider{border:none; border-top:1px solid var(--border-soft); margin:0;}
+
+  /* ---------- TOC ---------- */
+  .toc{margin-top:48px; padding:32px 28px; border:1px solid var(--border-soft); border-radius:5px; background:var(--bg-panel);}
+  .toc-title{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); letter-spacing:.08em; text-transform:uppercase; margin-bottom:20px;}
+  .toc-list{display:grid; grid-template-columns:1fr 1fr; gap:10px 32px; list-style:none; margin:0; padding:0;}
+  .toc-list li a{
+    display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:13px;
+    color:var(--text-dim); text-decoration:none; padding:6px 0; transition:color .15s;
+  }
+  .toc-list li a:hover{color:var(--amber);}
+  .toc-num{
+    font-size:11px; color:var(--amber); min-width:24px; letter-spacing:.04em;
+  }
+  @media(max-width:560px){ .toc-list{grid-template-columns:1fr;} }
+
+  /* ---------- PROTOCOL TABLE ---------- */
+  .proto-wrap{border:1px solid var(--border); border-radius:5px; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table.proto{width:100%; border-collapse:collapse; font-size:13.5px; min-width:640px;}
+  table.proto th{
+    text-align:left; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-faint); padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg-panel-2);
+    font-weight:500;
+  }
+  table.proto td{padding:13px 16px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
+  table.proto tr:last-child td{border-bottom:none;}
+  table.proto tr{transition:background .12s;}
+  table.proto tr:hover{background:rgba(255,178,56,.045);}
+  table.proto .attr-name{font-family:var(--font-mono); color:var(--amber); font-size:12.8px;}
+  table.proto .dom-prop{font-family:var(--font-mono); color:var(--teal); font-size:12.8px;}
+  table.proto .ex{font-family:var(--font-mono); color:var(--text-faint); font-size:12px;}
+
+  /* ---------- SPEC NOTES ---------- */
+  .spec-notes{margin-top:20px; display:flex; flex-direction:column; gap:10px;}
+  .spec-note{
+    display:flex; gap:12px; font-size:13.5px; color:var(--text-dim); align-items:flex-start;
+    border-left:2px solid var(--border); padding-left:14px;
+  }
+  .spec-note b{color:var(--text); font-weight:600;}
+  .spec-note .tag{
+    font-family:var(--font-mono); font-size:10.5px; padding:2px 7px; border-radius:2px; flex:none; margin-top:2px;
+    background:rgba(255,178,56,.12); color:var(--amber); letter-spacing:.04em;
+  }
+
+  /* ---------- PROTOCOL BLOCKS ---------- */
+  .proto-block{border:1px solid var(--border-soft); border-radius:5px; padding:26px 26px 10px; background:var(--bg-panel);}
+  .proto-block + .proto-block{margin-top:18px;}
+  .proto-label{font-family:var(--font-mono); font-size:12px; color:var(--amber); letter-spacing:.06em; text-transform:uppercase; margin-bottom:10px;}
+  .proto-desc{color:var(--text-dim); font-size:14px; line-height:1.7; margin:0 0 16px;}
+  .proto-block .spec-notes{margin:0 0 16px;}
+  .proto-code{border:1px solid var(--border-soft); border-radius:4px; overflow-x:auto; margin:0 0 16px;}
+  .proto-code pre{margin:0; padding:16px 18px; font-family:var(--font-mono); font-size:13px; line-height:1.8; color:var(--text-dim); overflow-x:auto;}
+  .proto-code .tk-str{color:var(--teal);}
+  .proto-code .tk-com{color:var(--text-faint);}
+  .proto-code .tk-tag{color:var(--amber);}
+  .proto-code .tk-attr{color:#C99BFF;}
+  .proto-principles{margin:0 0 16px; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px;}
+  .proto-principles li{font-size:14px; color:var(--text-dim); line-height:1.7; padding-left:16px; position:relative;}
+  .proto-principles li::before{content:"›"; position:absolute; left:0; color:var(--teal); font-family:var(--font-mono);}
+  .proto-principles b{color:var(--text);}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--border-soft); padding:44px 0;}
+  .footer-inner{display:flex; flex-direction:column; gap:24px; justify-content:space-between; align-items:flex-start;}
+  @media(min-width:760px){ .footer-inner{flex-direction:row; align-items:center;} }
+  .footer-brand{display:flex; align-items:center; gap:9px; font-family:var(--font-mono); font-size:14px; color:var(--text-dim);}
+  .footer-links{display:flex; gap:22px; flex-wrap:wrap;}
+  .footer-links a{font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint); text-decoration:none;}
+  .footer-links a:hover{color:var(--amber);}
+  .badge{
+    font-family:var(--font-mono); font-size:11px; padding:3px 9px; border:1px solid var(--border);
+    border-radius:20px; color:var(--text-faint);
+  }
+
+  /* ---------- 移动端收紧（≤560px） ---------- */
+  @media(max-width:560px){
+    .wrap{padding:0 16px;}
+    .nav-inner{padding:14px 16px;}
+    .hero{padding:56px 16px 32px;}
+    .hero-sub{font-size:16px;}
+    section{padding:64px 0;}
+    .section-head{margin-bottom:36px;}
+    .proto-block{padding:18px 18px 10px;}
+    .proto-code pre{padding:14px;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-glyph">⏚</span>
+      data-semantic<span class="brand-sub">/protocol</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="protocol.html" class="active">协议规范</a>
+      <a href="demo.html">Demo</a>
+    </div>
+    <a class="nav-gh" href="https://github.com/doc-war/data-semantic" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero wrap">
+    <div class="hero-meta">
+      <span class="eyebrow">Protocol Specification v1.0</span>
+    </div>
+    <h1>data-semantic <span class="hl">协议规范</span></h1>
+    <p class="hero-sub">
+      协议规范定义了声明方式、寻址方式、display 绑定、list 容器、数据边界、安全约束、协议 meta 以及编译器规则，是 runtime 与业务方之间的契约。
+    </p>
+    <div class="hero-meta">
+      <span class="hero-badge">v1.0</span>
+      <span class="hero-badge">MIT License</span>
+      <span class="hero-badge">AI-Native</span>
+    </div>
+
+    <!-- ===== TOC ===== -->
+    <div class="toc">
+      <div class="toc-title">目录 · Table of Contents</div>
+      <ol class="toc-list">
+        <li><a href="#s1"><span class="toc-num">01</span> 声明方式</a></li>
+        <li><a href="#s2"><span class="toc-num">02</span> display 绑定</a></li>
+        <li><a href="#s3"><span class="toc-num">03</span> 寻址方式</a></li>
+        <li><a href="#s4"><span class="toc-num">04</span> list 容器</a></li>
+        <li><a href="#s5"><span class="toc-num">05</span> 数据边界</a></li>
+        <li><a href="#s6"><span class="toc-num">06</span> 安全约束</a></li>
+        <li><a href="#s7"><span class="toc-num">07</span> 协议 meta</a></li>
+        <li><a href="#s8"><span class="toc-num">08</span> 编译器</a></li>
+      </ol>
+    </div>
+  </header>
+
+  <hr class="divider" />
+
+  <!-- ============ 01 声明方式 ============ -->
+  <section id="s1">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">01 / Declaration</span>
+        <h2>声明方式</h2>
+        <p>协议支持 12 种 <code class="mono">data-semantic-*</code> 属性绑定，覆盖文本内容、显示控制、表单值、媒体资源、无障碍标签等场景。所有绑定属性均在白名单内，不在白名单内的属性一律忽略。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">属性绑定一览</div>
+        <div class="proto-wrap">
+          <table class="proto">
+            <thead>
+              <tr><th>属性</th><th>绑定 DOM</th><th>用途</th><th>示例</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="attr-name">data-semantic</td><td class="dom-prop">textContent</td><td>基础文本内容</td><td class="ex">&lt;p data-semantic="user.name"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-display</td><td class="dom-prop">style.display</td><td>显示 / 隐藏控制</td><td class="ex">&lt;h1 data-semantic-display="user.isVip"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-placeholder</td><td class="dom-prop">placeholder</td><td>输入框占位符</td><td class="ex">&lt;input data-semantic-placeholder="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-value</td><td class="dom-prop">value</td><td>表单初始值（单向）</td><td class="ex">&lt;input data-semantic-value="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-title</td><td class="dom-prop">title</td><td>鼠标悬停提示</td><td class="ex">&lt;button data-semantic-title="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-alt</td><td class="dom-prop">alt</td><td>图片替代文本</td><td class="ex">&lt;img data-semantic-alt="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-src</td><td class="dom-prop">src</td><td>动态资源链接</td><td class="ex">&lt;img/video/iframe data-semantic-src="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-href</td><td class="dom-prop">href</td><td>动态跳转地址</td><td class="ex">&lt;a data-semantic-href="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-aria-label</td><td class="dom-prop">aria-label</td><td>无障碍标签</td><td class="ex">&lt;button data-semantic-aria-label="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-aria-description</td><td class="dom-prop">aria-description</td><td>无障碍详细描述</td><td class="ex">&lt;div role="tooltip" …&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-content</td><td class="dom-prop">content</td><td>meta 动态内容</td><td class="ex">&lt;meta data-semantic-content="…"&gt;</td></tr>
+              <tr><td class="attr-name">data-semantic-data-*</td><td class="dom-prop">data-*（透传）</td><td>自定义 data 属性</td><td class="ex">data-semantic-data-user-id="…"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ul class="proto-principles">
+          <li><b>WHITELIST</b> 仅白名单内的 12 种 <code class="mono">data-semantic-*</code> 属性会被 runtime 处理，其余自定义 data 属性一律忽略。</li>
+          <li><b>SECURITY</b> 事件处理器（<code class="mono">onclick</code> 等）、<code class="mono">style</code>、全局标识符、<code class="mono">iframe src</code> 等内联脚本类目标均不在白名单内，任意 <code class="mono">data-semantic-style</code> / <code class="mono">data-semantic-onclick</code> 均被忽略。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 02 display 绑定 ============ -->
+  <section id="s2">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">02 / Display Binding</span>
+        <h2>display 绑定</h2>
+        <p><code class="mono">data-semantic-display</code> 是唯一绑定到 <code class="mono">style</code> 的属性，用于控制元素的显示与隐藏。它拥有一套独立的布尔渲染逻辑。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">渲染规则</div>
+        <div class="proto-wrap">
+          <table class="proto">
+            <thead>
+              <tr><th>数据值</th><th>渲染行为</th><th>说明</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="attr-name">true</td><td class="dom-prop">显示元素</td><td class="ex">移除 display:none</td></tr>
+              <tr><td class="attr-name">false</td><td class="dom-prop">style.display = "none"</td><td class="ex">隐藏元素</td></tr>
+              <tr><td class="attr-name">"" / 0 / null / undefined / "false"</td><td class="dom-prop">style.display = "none"</td><td class="ex">所有逻辑假值均视为隐藏</td></tr>
+              <tr><td class="attr-name">其他真值字符串</td><td class="dom-prop">显示元素</td><td class="ex">如 "flex"、"grid"，值原样透传到 style.display</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="proto-code">
+          <pre><span class="tk-com">&lt;!-- 布尔控制 --&gt;</span>
+<span class="tk-tag">&lt;h1</span> <span class="tk-attr">data-semantic-display</span>=<span class="tk-str">"user.isVip"</span><span class="tk-tag">&gt;</span>VIP 用户<span class="tk-tag">&lt;/h1&gt;</span>
+
+<span class="tk-com">&lt;!-- 字符串值原样透传到 style.display --&gt;</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-display</span>=<span class="tk-str">"layout.mode"</span><span class="tk-tag">&gt;</span>内容区域<span class="tk-tag">&lt;/div&gt;</span>
+<span class="tk-com">// layout.mode = "flex"  → style.display = "flex"
+// layout.mode = true    → 显示
+// layout.mode = false   → style.display = "none"</span></pre>
+        </div>
+
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">NO CSS</span> <code class="mono">data-semantic-display</code> 只写入 <code class="mono">style.display</code>，不读取、不修改 CSS class。显示/隐藏逻辑与 CSS 层叠完全解耦。</div>
+          <div class="spec-note"><span class="tag">FALSE</span> <code class="mono">"false"</code>（字符串）与 <code class="mono">false</code>（布尔）效果完全一致，均输出 <code class="mono">style.display = "none"</code>。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 03 寻址方式 ============ -->
+  <section id="s3">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">03 / Addressing</span>
+        <h2>寻址方式</h2>
+        <p>UI 侧声明的槽位值，对应数据侧的 key 路径。槽位命名遵循标准 JSON 寻址（点分隔），支持嵌套与数组索引。</p>
+      </div>
+
+      <!-- 绝对寻址 -->
+      <div class="proto-block">
+        <div class="proto-label">绝对寻址</div>
+        <p class="proto-desc">使用点分隔路径直接定位数据对象中的任意深度字段。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tk-tag">&gt;&lt;/p&gt;</span>
+<span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"user.addresses.0.city"</span><span class="tk-tag">&gt;&lt;/p&gt;</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">NAMING</span> key 路径遵循标准 JSON 寻址（点分隔），<b>业务字段名禁止包含 <code class="mono">.</code></b>，否则无法被路径解析命中。</div>
+        </div>
+      </div>
+
+      <!-- 相对寻址 -->
+      <div class="proto-block">
+        <div class="proto-label">相对寻址</div>
+        <p class="proto-desc">当元素处于某个作用域容器内时，可省略前缀，使用相对路径绑定。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">&lt;!-- 在作用域容器内，省略前缀 --&gt;</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-scope</span>=<span class="tk-str">"user"</span><span class="tk-tag">&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"name"</span><span class="tk-tag">&gt;&lt;/p&gt;</span>   <span class="tk-com">&lt;!-- 等价于 user.name --&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"title"</span><span class="tk-tag">&gt;&lt;/p&gt;</span>  <span class="tk-com">&lt;!-- 等价于 user.title --&gt;</span>
+<span class="tk-tag">&lt;/div&gt;</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">RESTRICT</span> 相对寻址仅在声明了 <code class="mono">data-semantic-scope</code> 的容器内生效，且仅向下穿透一层作用域。</div>
+        </div>
+      </div>
+
+      <!-- 方括号寻址 -->
+      <div class="proto-block">
+        <div class="proto-label">方括号寻址</div>
+        <p class="proto-desc">数组元素必须使用数字索引的方括号语法进行寻址。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list[0].name"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list[2].title"</span><span class="tk-tag">&gt;&lt;/div&gt;</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">NUMERIC</span> 方括号内的索引<b>必须是数字</b>，不支持字符串键或负数索引。</div>
+        </div>
+      </div>
+
+      <!-- 纯点号声明 -->
+      <div class="proto-block">
+        <div class="proto-label">纯点号声明</div>
+        <p class="proto-desc">对于嵌套路径，可以使用纯点号分隔的声明方式。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"user.profile.displayName"</span><span class="tk-tag">&gt;&lt;/p&gt;</span>
+<span class="tk-tag">&lt;img</span> <span class="tk-attr">data-semantic-src</span>=<span class="tk-str">"assets.heroImage"</span><span class="tk-tag"> /&gt;</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 04 list 容器 ============ -->
+  <section id="s4">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">04 / List Container</span>
+        <h2>list 容器</h2>
+        <p>runtime 通过 <code class="mono">data-semantic-list</code> 标记列表容器，支持基础列表、嵌套列表与翻译模式。</p>
+      </div>
+
+      <!-- 基础列表 -->
+      <div class="proto-block">
+        <div class="proto-label">基础列表</div>
+        <p class="proto-desc">声明列表容器与列表项模板，runtime 根据数组长度自动渲染列表项。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;ul</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"nav.items"</span><span class="tk-tag">&gt;</span>
+  <span class="tk-tag">&lt;li&gt;</span>
+    <span class="tk-tag">&lt;a</span> <span class="tk-attr">data-semantic-href</span>=<span class="tk-str">".url"</span><span class="tk-tag">&gt;</span>
+      <span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">".label"</span><span class="tk-tag">&gt;&lt;/span&gt;</span>
+    <span class="tk-tag">&lt;/a&gt;</span>
+  <span class="tk-tag">&lt;/li&gt;</span>
+<span class="tk-tag">&lt;/ul&gt;</span></pre>
+        </div>
+      </div>
+
+      <!-- 嵌套列表 -->
+      <div class="proto-block">
+        <div class="proto-label">嵌套列表</div>
+        <p class="proto-desc">列表容器内可包含子列表，形成树状结构。子列表的作用域自动继承父级数组元素。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;ul</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"tree.nodes"</span><span class="tk-tag">&gt;</span>
+  <span class="tk-tag">&lt;li&gt;</span>
+    <span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"name"</span><span class="tk-tag">&gt;&lt;/span&gt;</span>
+    <span class="tk-tag">&lt;ul</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"children"</span><span class="tk-tag">&gt;</span>
+      <span class="tk-tag">&lt;li&gt;</span>
+        <span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"name"</span><span class="tk-tag">&gt;&lt;/span&gt;</span>
+      <span class="tk-tag">&lt;/li&gt;</span>
+    <span class="tk-tag">&lt;/ul&gt;</span>
+  <span class="tk-tag">&lt;/li&gt;</span>
+<span class="tk-tag">&lt;/ul&gt;</span></pre>
+        </div>
+      </div>
+
+      <!-- 翻译模式 -->
+      <div class="proto-block">
+        <div class="proto-label">翻译模式</div>
+        <p class="proto-desc">在翻译场景中，列表的渲染采用差异化策略：叶子节点使用增量更新，容器节点使用全量替换。</p>
+        <ul class="proto-principles">
+          <li><b>叶子增量</b>：列表项内的叶子节点（文本、属性）使用增量更新，未变化的字段保持原值。</li>
+          <li><b>容器全量</b>：列表容器（<code class="mono">data-semantic-list</code>）在数组长度变化时执行全量替换，确保 DOM 结构与数据一致。</li>
+        </ul>
+        <div class="proto-code">
+          <pre><span class="tk-com">// 翻译场景：语言切换时，列表容器整体替换，叶子节点增量更新</span>
+const zh = { nav: { items: [
+  { label: <span class="tk-str">"首页"</span>, url: <span class="tk-str">"/"</span> },
+  { label: <span class="tk-str">"关于"</span>, url: <span class="tk-str">"/about"</span> }
+]}};
+const en = { nav: { items: [
+  { label: <span class="tk-str">"Home"</span>, url: <span class="tk-str">"/"</span> },
+  { label: <span class="tk-str">"About"</span>, url: <span class="tk-str">"/about"</span> }
+]}};
+
+DataSemantic.render(zh);
+DataSemantic.render(en); <span class="tk-com">// 列表项增量更新 label，容器结构不变</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 05 数据边界 ============ -->
+  <section id="s5">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">05 / Data Boundary</span>
+        <h2>数据边界</h2>
+        <p><code class="mono">render()</code> 对传入数据有严格约束，开发者与 runtime 必须共同遵守。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">render() 必须传入纯 JSON 对象</div>
+        <p class="proto-desc"><code class="mono">render(data)</code> 的参数必须是合法的纯 JSON 对象，不接受函数、DOM 节点、Date 等非 JSON 值。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">// ✅ 合法：纯 JSON 对象</span>
+DataSemantic.render({ page: { title: <span class="tk-str">"欢迎"</span> } });
+
+<span class="tk-com">// ❌ 非法：根数组</span>
+DataSemantic.render([{ title: <span class="tk-str">"欢迎"</span> }]); <span class="tk-com">// 根数组禁止，必须包裹在对象内</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">ROOT ARRAY</span> 根级别数组（如 <code class="mono">render([])</code>）被明确禁止。数组必须作为对象的属性值传入。</div>
+        </div>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">数组必须整体传入</div>
+        <p class="proto-desc">数组使用全量替换语义，不支持 <code class="mono">undefined</code> 占位的部分更新。每次传入数组必须包含完整数据。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">// ✅ 数组必须整体传入（deepMerge 不递归合并数组）</span>
+DataSemantic.render({ pages: { list: [<span class="tk-str">'a'</span>, <span class="tk-str">'b'</span>] } });
+
+<span class="tk-com">// ❌ 用 undefined 占位更新数组元素，会被整体替换</span>
+DataSemantic.render({ pages: { list: [undefined, <span class="tk-str">'x'</span>] } }); <span class="tk-com">// 整个 list 被替换</span></pre>
+        </div>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">key 必须是标量</div>
+        <p class="proto-desc">绑定目标必须是叶子节点（标量值：字符串、数字、布尔），不接受绑定对象或数组本身。</p>
+        <div class="proto-code">
+          <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list.0.name"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>  <span class="tk-com">// ✅ 标量叶子</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"pages.list"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>          <span class="tk-com">// ❌ 绑定对象/数组，跳过渲染并告警</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 06 安全约束 ============ -->
+  <section id="s6">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">06 / Security</span>
+        <h2>安全约束</h2>
+        <p>runtime 对所有属性写入实行严格的白名单机制，杜绝 XSS 与注入风险。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">属性白名单</div>
+        <p class="proto-desc">只有 <code class="mono">data-semantic-*</code> 白名单内的 12 种属性会被 runtime 读取和写入，其余自定义属性一律忽略。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">// 白名单属性（仅限以下 12 种）</span>
+data-semantic           <span class="tk-com">→ textContent</span>
+data-semantic-display   <span class="tk-com">→ style.display</span>
+data-semantic-placeholder → placeholder
+data-semantic-value     <span class="tk-com">→ value</span>
+data-semantic-title     <span class="tk-com">→ title</span>
+data-semantic-alt       <span class="tk-com">→ alt</span>
+data-semantic-src       <span class="tk-com">→ src</span>
+data-semantic-href      <span class="tk-com">→ href</span>
+data-semantic-aria-label       <span class="tk-com">→ aria-label</span>
+data-semantic-aria-description <span class="tk-com">→ aria-description</span>
+data-semantic-content   <span class="tk-com">→ content</span>
+data-semantic-data-*    <span class="tk-com">→ data-*（透传）</span></pre>
+        </div>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">禁止项列表</div>
+        <p class="proto-desc">以下属性或行为被明确禁止，runtime 会拒绝执行：</p>
+        <ul class="proto-principles">
+          <li><b>事件处理器</b>：<code class="mono">onclick</code>、<code class="mono">onerror</code> 等所有 <code class="mono">on-*</code> 属性一律不在白名单内。</li>
+          <li><b>style 属性</b>：除 <code class="mono">data-semantic-display</code> 绑定的 <code class="mono">style.display</code> 外，禁止直接操作 style。</li>
+          <li><b>全局标识符</b>：禁止引用 <code class="mono">window</code>、<code class="mono">document</code> 等全局对象。</li>
+          <li><b>script / eval</b>：禁止任何脚本注入或动态执行。</li>
+          <li><b>非白名单属性</b>：<code class="mono">data-semantic-style</code>、<code class="mono">data-semantic-onclick</code> 等均被拒绝。</li>
+        </ul>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">iframe src URL 校验</div>
+        <p class="proto-desc">当通过 <code class="mono">data-semantic-src</code> 写入 <code class="mono">&lt;iframe&gt;</code> 时，URL 必须通过白名单协议校验。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">// ✅ 仅允许以下协议</span>
+https://example.com         <span class="tk-com">// HTTPS 协议</span>
+http://example.com          <span class="tk-com">// HTTP 协议</span>
+//example.com               <span class="tk-com">// 协议相对 URL</span>
+
+<span class="tk-com">// ❌ 以下协议被拒绝</span>
+javascript:alert(1)         <span class="tk-com">// 危险！被拦截</span>
+data:text/html,<span class="tk-com">...</span>          <span class="tk-com">// 危险！被拦截</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">URL</span> 仅允许 <code class="mono">https://</code>、<code class="mono">http://</code>、<code class="mono">///</code>（协议相对 URL）三种前缀，其余一律拒绝写入。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 07 协议 meta ============ -->
+  <section id="s7">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">07 / Protocol Meta</span>
+        <h2>协议 meta</h2>
+        <p>runtime 加载时自动向页面 <code class="mono">&lt;head&gt;</code> 注入 meta 标签，向第三方平台声明本页面遵循 data-semantic 协议。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">自动注入</div>
+        <p class="proto-desc">runtime 初始化完成后，会在 <code class="mono">&lt;head&gt;</code> 中自动注入以下 meta 标签：</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">&lt;!-- runtime 加载时自动注入到 &lt;head&gt; --&gt;</span>
+<span class="tk-tag">&lt;meta</span> <span class="tk-attr">name</span>=<span class="tk-str">"data-semantic"</span> <span class="tk-attr">content</span>=<span class="tk-str">"1.0"</span> <span class="tk-tag">/&gt;</span>
+
+<span class="tk-com">&lt;!-- 三方平台可通过此 meta 标签识别页面是否遵循 data-semantic 协议 --&gt;</span>
+<span class="tk-com">&lt;!-- content 值为协议版本号，遵循 semver 规范 --&gt;</span></pre>
+        </div>
+        <div class="spec-notes">
+          <div class="spec-note"><span class="tag">AUTO</span> meta 标签由 runtime 自动注入，业务方无需手动添加。重复声明不会产生冲突，runtime 会去重。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ============ 08 编译器 ============ -->
+  <section id="s8">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">08 / Compiler</span>
+        <h2>编译器</h2>
+        <p>编译器（<code class="mono">ds-compile</code>）用于构建阶段的代码优化，遵循「保留语义、移除数据」的核心原则。</p>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">保留语义属性 + --remove-data-attrs</div>
+        <p class="proto-desc">编译器保留所有 <code class="mono">data-semantic-*</code> 语义属性，仅移除非语义的 data 属性（通过 <code class="mono">--remove-data-attrs</code> 选项）。</p>
+        <div class="proto-code">
+          <pre><span class="tk-com">// 编译前</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span> <span class="tk-attr">data-foo</span>=<span class="tk-str">"bar"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>
+
+<span class="tk-com">// 编译后（--remove-data-attrs）</span>
+<span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tk-tag">&gt;&lt;/div&gt;</span>  <span class="tk-com">&lt;!-- 语义属性保留，非语义 data 属性移除 --&gt;</span></pre>
+        </div>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">check() 校验规则</div>
+        <p class="proto-desc">编译器内置 <code class="mono">check()</code> 校验函数，在编译阶段检查协议合规性：</p>
+        <ul class="proto-principles">
+          <li><b>白名单校验</b>：检查所有 <code class="mono">data-semantic-*</code> 属性是否在白名单内。</li>
+          <li><b>寻址合法性</b>：校验 key 路径是否包含非法字符，是否使用了数字索引。</li>
+          <li><b>绑定目标</b>：检查绑定目标是否为叶子节点（非对象/数组）。</li>
+          <li><b>iframe URL</b>：校验 <code class="mono">data-semantic-src</code> 在 iframe 上的 URL 协议。</li>
+        </ul>
+      </div>
+
+      <div class="proto-block">
+        <div class="proto-label">编译是数据求值，不是语义擦除</div>
+        <p class="proto-desc">编译器的核心定位是<b>数据求值</b>——将静态 HTML 中的语义声明编译为可直接运行的代码，而非擦除语义标记。</p>
+        <ul class="proto-principles">
+          <li><b>编译 ≠ 擦除</b>：<code class="mono">data-semantic</code> 属性在编译后完整保留，页面结构自始至终携带数据语义。</li>
+          <li><b>编译 = 求值</b>：编译器将声明式属性转换为高效的 runtime 调用代码，减少运行时解析开销。</li>
+          <li><b>产出物</b>：编译产物是包含完整语义属性的 HTML + 优化后的 JS 运行时调用，可供三方平台精准分析。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="brand-glyph" style="width:18px;height:18px;font-size:10px;">⏚</span>
+      data-semantic · HTML 原生的语义插座协议
+    </div>
+    <div class="footer-links">
+      <a href="protocol.html">协议规范</a>
+      <a href="index.html">首页</a>
+      <a href="https://github.com/doc-war/data-semantic" target="_blank" rel="noopener">GitHub</a>
+      <span class="badge">v1.0 · MIT</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 # data-semantic
 
-data-semantic首先是一个html语义插座协议，其次才是runtime和comptime实现。
+data-semantic首先是一个html语义插座协议，其次才是runtime和compiler实现。
 —— AI原生设计，语义优先
 —— 纯 HTML 声明式绑定、零 JS 侵入。
 
@@ -62,7 +62,7 @@ data-semantic的核心技术原理，是基于html原生`data-*`机制，预声�
 
 之类的形式来清晰声明数据的语义。这为SEO、GEO分析提供了一种更理想的自动化模型，为三方平台提供侧载语义分析服务提供了可能。
 
-#### 响应式模型
+#### 生成式模型
 
 主流前端框架的响应式本质都是「数据变更 → 视图更新」，区别只在于**数据变更事件**的入口：
 
@@ -74,7 +74,7 @@ data-semantic的核心技术原理，是基于html原生`data-*`机制，预声�
 
 data-semantic 以**显式 render 事件**表达数据变更：
 
-开发者无法关心任何复杂的语法，也无需在编译时就锁定数据来源，框架唯一的动作就是传入新数据，结合配合声明式绑定，无需状态管理、生命周期或依赖追踪。——这是对 AI 生成代码最友好的响应式模型。
+AI无需关心任何复杂的语法，基于schema语义构造UI、数据、渲染逻辑——这是对 AI 生成代码最友好的生成式模型。
 
 #### AI流式友好
 
@@ -159,6 +159,25 @@ const html = compile(template, data);         // 静态展开
 const report = check(template, data);          // { valid, errors, warnings }
 const nodes = inspect(template);               // [{ tag, key, type, selector }]
 ```
+
+##### 编译器保留语义属性
+
+编译输出**默认保留**所有 `data-semantic` 相关属性（`data-semantic`、`data-semantic-list`、`data-semantic-display`、`data-semantic-{attr}`）。编译是数据求值，不是语义擦除。
+
+如需移除，使用 `--remove-data-attrs` 标志：
+
+```bash
+data-semantic build -t template.html -d data.json -o out.html --remove-data-attrs
+```
+
+##### check() 校验规则
+
+`check()` 执行以下校验：
+
+- 属性白名单检查（`data-semantic-{attr}` 中 `{attr}` 必须在白名单内）
+- 非标量值绑定检查（绑定到对象/数组的键报 violation）
+- **iframe src URL 校验**：仅允许 `https:`、`http:`、`//` 协议，禁止 `javascript:`/`data:`/`vbscript:`
+- **相对键上下文检查**：`data-semantic=".xxx"` 只能在 `data-semantic-list` 容器内使用
 
 ##### `new DataSemanticRuntime(options)`
 
@@ -376,11 +395,12 @@ html
 
 渲染规则
 
-| **数据值**     | 语义   | **行为**                          |
-| :------------- | ------ | :-------------------------------- |
-| 布尔值-`true`  | 显示   | `style.display = ''`              |
-| 布尔值-`false` | 不显示 | `style.display = 'none'`          |
-| string值       | 透传   | 直接透传（`'flex'`、`'grid'` 等） |
+| **数据值** | 语义 | **行为** |
+| :--- | :--- | :--- |
+| 布尔值 `true` | 显示 | `style.display = ''` |
+| 布尔值 `false` | 隐藏 | `style.display = 'none'` |
+| 逻辑假值（`""`、`0`、`null`、`undefined`、`"false"`） | 隐藏 | `style.display = 'none'` |
+| 其他真值字符串（如 `"flex"`、`"grid"`） | 显示 | `style.display = ''` |
 
 ##### 13. `data-semantic-list`（列表容器）
 
@@ -405,6 +425,28 @@ html
   // 渲染后容器内有两个 <article>
 </script>
 ```
+
+###### 标量数组
+
+当列表项为标量（字符串、数字）时，使用纯点号 `.` 引用当前元素：
+
+```html
+<div data-semantic-list="tags">
+  <span data-semantic="."></span>
+</div>
+
+<script>
+  const data = { tags: ["AI", "Web", "Design"] };
+  DataSemantic.render(data);
+  // 渲染后容器内有三个 <span>：AI、Web、Design
+</script>
+```
+
+###### 翻译模式
+
+列表容器采用**全量翻译**：每次渲染都基于当前数组完整重建列表内容。如果此前有 2 项，下次只传入 1 项，整个 list 会重新渲染为 1 项。
+
+叶子节点采用**增量翻译**：只变动当次传入数据命中的范围，未命中部分保持不变。
 
 #### key 路径
 
@@ -438,13 +480,29 @@ UI侧声明的槽位值，对应的是数据侧的key路径。
 </div>
 ```
 
+相对键**只能在** `data-semantic-list` 容器内使用。非 list 上下文中使用 `.` 开头的键是协议违规，运行时会忽略并告警。
+
+##### 方括号寻址
+
+方括号内**必须是数值**，仅用于数组索引：
+
+```html
+<p data-semantic="pages.list[0].name"></p>
+```
+
+等价于点号写法 `pages.list.0.name`。方括号内不支持字符串 key 或表达式。
+
 相应的，也会引入数据规范约束：数据侧的key不应该包含 `.`，因为会与路径分隔符冲突，造成寻址问题。
 
 #### 数据边界
 
 数组场景遵循以下明确边界，避免对框架行为的误解：
 
-##### 1、 数组必须整体传入
+##### 1、 render() 必须传入纯 JSON 对象
+
+`render(data)` 的 `data` 必须是纯 JSON 对象（Plain Object），不能是数组、Date 或其他 JS 对象。根数组被明确禁止。
+
+##### 2、 数组必须整体传入
 
 对于数组，`deepMerge`不会递归合并 ，而是直接整体替换，因此每次传入数组都必须是完整数组：
 
@@ -462,7 +520,7 @@ render({ pages: { list: ['a', 'b'] } });
 render({ pages: { list: [undefined, 'x'] } });
 ```
 
-##### 2、key必须是标量
+##### 3、key必须是标量
 
 * ✅ 正确方式
 
