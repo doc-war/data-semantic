@@ -3,10 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" data-semantic-content="seo.description">
-  <link rel="icon" href="/img/favicon.ico" type="image/x-icon"><!-- 引入官网ico -->
-  <script src="/analytics.js" defer></script><!-- 引入统计代码 -->
   <title>data-semantic 框架演示</title>
+  <meta name="description" content="data-semantic 是面向 AI 时代的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。" />
+  <link rel="icon" href="/img/favicon.ico" type="image/x-icon"><!-- 引入官网ico -->
+   <script src="/analytics.js" defer></script><!-- 引入统计代码 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="data-semantic" />
+  <meta property="og:title" content="data-semantic · HTML 原生的语义插座协议" />
+  <meta property="og:description" content="data-semantic 是面向 AI 时代的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。" />
+  <meta property="og:url" content="https://doc-war.com/data-semantic" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:image" content="https://doc-war.com/img/logo.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "data-semantic",
+    "url": "https://doc-war.com/data-semantic",
+    "description": "AI-Native 的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。",
+    "keywords": ["AI-Native", "声明式数据绑定", "语义插座协议", "前端框架", "零依赖"],
+    "license": "MIT",
+    "author": {
+      "@type": "Organization",
+      "name": "doc-war",
+      "url": "https://doc-war.com",
+      "jobTitle": "产品经理 | 全栈架构师 | 文档工程师",
+      "description": "zhaoliwei，网名越石父，花名青樵，月光博客早期知名评论员，曾以提供判断力价值的评论风格而闻名。主张设计驱动，注重文档驱动，专注于基础协议和基础工具研发。"
+    }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -147,21 +172,21 @@
       data-semantic
     </a>
     <div style="display:flex;gap:20px;align-items:center;">
-      <a href="index.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:#666;">首页</a>
-      <a href="protocol.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:#666;">协议规范</a>
-      <a href="demo.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:#4f46e5;font-weight:600;">Demo</a>
+      <a href="./index.html" style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:#666;">协议规范</a>
+      <a href="" style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:#4f46e5;font-weight:600;">Demo</a>
     </div>
   </nav>
 
+  
   <h1>data-semantic 语义渲染框架</h1>
   <p><code>data-semantic</code> 通过声明式属性把数据源绑定到 DOM，无需手写 DOM 操作。</p>
-  <h2>完备性</h2>
+  <!-- <h2>完备性</h2>
   <ul class="orthogonal-list">
     <li>填什么内容 → <code>data-semantic</code> 绑定 <code>textContent</code></li>
     <li>填到哪里 → <code>data-semantic-{attr}</code> 绑定 DOM 属性（白名单内）</li>
     <li>要不要显示 → <code>data-semantic-display</code> 绑定 <code>style.display</code></li>
-    <li>列表渲染 → <code>data-semantic-list</code> 声明容器，innerHTML 为模板，数组逐项实例化</li>
-  </ul>
+    <li>列表渲染 → <code>data-semantic-list</code> 声明容器，innerHTML 为模板，数组逐项实例化</li> 
+  </ul>-->
 
   <!-- 左右两栏：左栏分组示例列表，右栏声明代码 / 渲染逻辑 / 渲染结果 -->
   <h2>示例</h2>

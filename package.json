@@ -21,9 +21,9 @@
     "typecheck": "npm run typecheck -w runtime && npm run typecheck -w compiler",
     "typecheck:runtime": "npm run typecheck -w runtime",
     "typecheck:compiler": "npm run typecheck -w compiler",
-    "publish": "echo '>> 同时发布 runtime 和 compiler <<' && npm run publish:runtime && npm run publish:compiler",
-    "publish:runtime": "npm run publish -w runtime",
-    "publish:compiler": "npm run publish -w compiler"
+    "publish": "echo \">> 同时发布 runtime 和 compiler <<\" && npm run publish:runtime && npm run publish:compiler",
+    "publish:runtime": "npm  publish -w runtime",
+    "publish:compiler": "npm publish -w compiler"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

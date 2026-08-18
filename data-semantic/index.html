@@ -11,7 +11,7 @@
 <meta property="og:site_name" content="data-semantic" />
 <meta property="og:title" content="data-semantic · HTML 原生的语义插座协议" />
 <meta property="og:description" content="data-semantic 是面向 AI 时代的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。" />
-<meta property="og:url" content="https://doc-war.com/" />
+<meta property="og:url" content="https://doc-war.com/data-semantic" />
 <meta property="og:locale" content="zh_CN" />
 <meta property="og:image" content="https://doc-war.com/img/logo.png" />
 <script type="application/ld+json">
@@ -19,7 +19,7 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "data-semantic",
-  "url": "https://doc-war.com/",
+  "url": "https://doc-war.com/data-semantic",
   "description": "AI-Native 的声明式数据绑定协议：用原生 data-* 属性标记插槽，一次 render() 完成注入，UI 与数据全程解耦。",
   "keywords": ["AI-Native", "声明式数据绑定", "语义插座协议", "前端框架", "零依赖"],
   "license": "MIT",
@@ -43,16 +43,15 @@
   <div class="nav-inner">
     <div class="logo"><span class="dot"></span>data-semantic <span class="sub">v1.0</span></div>
     <div class="nav-links">
-      <a href="#demo">试一试</a>
-      <a href="#concept">核心概念</a>
-      <a href="#whitelist">属性白名单</a>
-      <a href="#binding">绑定方式</a>
-      <a href="#addressing">寻址规则</a>
-      <a href="#fault-tolerance">容错与翻译</a>
+      <a href="#demo">Demo</a>
+      <a href="#concept">范式</a>
+      <a href="#declaration">声明和翻译</a>
+      <a href="#addressing">寻址</a>
+      <a href="#fault-tolerance">容错</a>
       <a href="#framework">框架层要求</a>
       <a href="#conformance">一致性测试</a>
     </div>
-    <a class="nav-cta" href="./demo.html">Demo示例 →</a>
+    <a class="nav-cta" href="https://github.com/doc-war/data-semantic" target="_blank">GitHub ↗</a>
   </div>
 </nav>
 
@@ -73,14 +72,11 @@
     <div class="demo" id="demo">
       <div class="demo-bar">
         <div class="demo-tabs">
-          <div class="demo-tab active" data-pane="tpl">UI</div>
+          <div class="demo-tab active" data-pane="tpl">模板</div>
           <div class="demo-tab" data-pane="data">数据</div>
           <div class="demo-tab" data-pane="result">翻译结果</div>
         </div>
-        <div class="demo-actions">
-          <!-- <button class="demo-btn reset" id="resetBtn">重置</button> -->
-          <button class="demo-btn run" id="runBtn">▶ 运行翻译</button>
-        </div>
+        <a class="demo-link" href="./demo.html" target="_blank">更多示例→</a>
       </div>
       <div class="demo-body">
         <div class="pane active" data-pane="tpl">
@@ -93,6 +89,9 @@
 <span class="tag">&lt;/div&gt;</span></pre>
         </div>
         <div class="pane" data-pane="data">
+          <div class="data-split">
+            <div class="data-json">
+              <div class="data-json-label">data</div>
 <pre class="code"><span class="punc">{</span>
   <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span>
     <span class="attr-name">"title"</span><span class="punc">:</span> <span class="str">"Data-Semantic 协议规范 v1.0"</span><span class="punc">,</span>
@@ -102,16 +101,45 @@
     <span class="punc">]</span>
   <span class="punc">}</span>
 <span class="punc">}</span></pre>
+            </div>
+            <div class="data-api">
+              <div class="api-tabs">
+                <div class="api-tab active" data-sub="runtime">runtime</div>
+                <div class="api-tab" data-sub="compiler">compiler</div>
+              </div>
+              <div class="api-panels">
+                <div class="api-panel active" data-sub="runtime">
+                  <div class="api-pkg">npm i data-semantic</div>
+<pre class="code"><span class="punc">import</span> { DataSemantic } <span class="punc">from</span> <span class="str">'data-semantic'</span><span class="punc">;</span>
+
+<span class="cmt">// 读取数据</span>
+DataSemantic<span class="punc">.</span><span class="attr-name">render</span><span class="punc">(</span>data<span class="punc">)</span><span class="punc">;</span></pre>
+                </div>
+                <div class="api-panel" data-sub="compiler">
+                  <div class="api-pkg">npm i data-semantic-compiler</div>
+<pre class="code"><span class="punc">import</span> { compile } <span class="punc">from</span> <span class="str">'data-semantic-compiler'</span><span class="punc">;</span>
+
+<span class="cmt">// 读取模板代码</span>
+<span class="cmt">// 读取数据</span>
+<span class="punc">const</span> result <span class="punc">=</span> <span class="attr-name">compile</span><span class="punc">(</span>template<span class="punc">,</span> data<span class="punc">)</span><span class="punc">;</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="pane" data-pane="result">
-<pre class="code" id="resultCode"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span>
+<pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;</span><span class="fillval">Data-Semantic 协议规范 v1.0</span><span class="tag">&lt;/h1&gt;</span>
 <span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;div&gt;</span>
-    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;&lt;/p&gt;</span>
-    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;&lt;/a&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">基本概念</span><span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://x.com</span><span class="tag">&lt;/a&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">协议原文</span><span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://y.com</span><span class="tag">&lt;/a&gt;</span>
   <span class="tag">&lt;/div&gt;</span>
 <span class="tag">&lt;/div&gt;</span></pre>
-          <p class="empty-hint" id="resultHint" style="margin-top:10px;">运行翻译后，data-semantic 属性依然保留在源码中 —— 这是「保留语义声明」的要求。</p>
+          <p class="empty-hint" style="margin-top:10px;">data-semantic 属性依然保留在源码中 —— 这是「保留语义声明」的要求。</p>
         </div>
       </div>
     </div>
@@ -187,24 +215,128 @@
   </div>
 </section>
 
-<section id="whitelist">
+<section id="declaration">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">02 · 属性白名单</div>
-      <h2>12 种语义属性，零歧义</h2>
-      <p>只有白名单内的 <code class="mono">data-semantic-*</code> 属性会被 runtime 读取和写入，其余自定义属性一律忽略。事件处理器、style 注入、全局标识符等内联脚本类目标均不在白名单内。</p>
+      <div class="eyebrow">02 · 声明和翻译规则</div>
+      <h2>四大声明，正交组合</h2>
+      <p>目前支持四大类语义声明方式（内容绑定、属性绑定、可见性绑定、列表容器），正交设计，可自由叠加。</p>
+    </div>
+
+    <!-- ===== 通用原则 ===== -->
+    <div class="proto-block">
+      <div class="proto-label">通用原则 · 正交组合</div>
+      <div class="proto-wrap">
+        <table class="proto">
+          <thead>
+            <tr><th>声明</th><th>对应操作</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="attr-name">data-semantic={key}</td><td class="dom-prop">Node.textContent</td></tr>
+            <tr><td class="attr-name">data-semantic-{attr}={key}</td><td class="dom-prop">Element.setAttribute()</td></tr>
+            <tr><td class="attr-name">data-semantic-display={key}</td><td class="dom-prop">Element.style.display</td></tr>
+            <tr><td class="attr-name">data-semantic-list={key}</td><td class="dom-prop">列表容器（innerHTML 为模板，n 次实例化）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="proto-desc">单个元素可以包含多个相互独立的声明：</p>
+      <div class="proto-code">
+        <pre><span class="tag">&lt;a</span>
+  <span class="tk-attr">data-semantic</span>=<span class="tk-str">"linkText"</span>
+  <span class="tk-attr">data-semantic-href</span>=<span class="tk-str">"linkUrl"</span>
+  <span class="tk-attr">data-semantic-title</span>=<span class="tk-str">"linkTooltip"</span>
+  <span class="tk-attr">data-semantic-display</span>=<span class="tk-str">"showLink"</span>
+<span class="tag">&gt;</span><span class="tag">&lt;/a&gt;</span></pre>
+      </div>
     </div>
 
     <div class="proto-block">
-      <div class="proto-label">属性绑定一览</div>
+      <div class="proto-label">通用原则 · 属性透传规则</div>
+      <p class="proto-desc">任何非 <code class="mono">data-semantic</code> 或非 <code class="mono">data-semantic-*</code> 的属性，都将按原样透传至渲染输出中，不参与键解析。</p>
+      <div class="proto-code">
+        <pre><span class="tag">&lt;span</span> <span class="tk-attr">data-semantic-data-role</span>=<span class="tk-str">"user.role"</span><span class="tag">&gt;&lt;/span&gt;</span>  <span class="tk-com">&lt;!-- ✅ 白名单内，执行语义翻译 --&gt;</span>
+<span class="tag">&lt;span</span> <span class="tk-attr">data-semantic-role</span>=<span class="tk-str">"user.role"</span><span class="tag">&gt;&lt;/span&gt;</span>     <span class="tk-com">&lt;!-- 透传，不做处置 --&gt;</span>
+<span class="tag">&lt;span</span> <span class="tk-attr">semantic-role</span>=<span class="tk-str">"user.role"</span><span class="tag">&gt;&lt;/span&gt;</span>          <span class="tk-com">&lt;!-- 透传，不做处置 --&gt;</span></pre>
+      </div>
+      <div class="spec-notes">
+        <div class="spec-note"><span class="tag">WHITELIST</span> 仅白名单内的 10 种 <code class="mono">data-semantic-*</code> 属性会被 runtime 处理，其余自定义 data 属性一律忽略。</div>
+        <div class="spec-note"><span class="tag">SECURITY</span> 事件处理器（<code class="mono">onclick</code> 等）、<code class="mono">style</code>、全局标识符、<code class="mono">iframe src</code> 等内联脚本类目标均不在白名单内。</div>
+      </div>
+    </div>
+
+    <div class="proto-block">
+      <div class="proto-label">通用原则 · 翻译模式</div>
+      <p class="proto-desc">实际的翻译范围取决于传入的数据及寻址命中量，列表容器节点和普通叶子节点的规则有所不同。</p>
+      <ul class="proto-principles">
+        <li><b>叶子增量</b>：只变动当次传入数据命中的范围，未命中部分保持不变。</li>
+        <li><b>列表全量</b>：如果列表此前有 2 项，下一次渲染只传入 1 项，那么整个 list 节点会重新渲染，只剩下一项。</li>
+      </ul>
+      <p class="proto-desc" style="margin-top:12px;">示例 — 模板：</p>
+      <div class="proto-code">
+        <pre><span class="tag">&lt;div</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"answer"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"."</span><span class="tag">&gt;&lt;/p&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre>
+      </div>
+      <p class="proto-desc">第一次渲染 — 传入 3 项：</p>
+      <div class="proto-code">
+        <pre>DataSemantic.render({ answer: [<span class="tk-str">"不要回答！"</span>, <span class="tk-str">"不要回答！"</span>, <span class="tk-str">"不要回答！"</span>] });</pre>
+      </div>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"answer"</span><span class="tag">&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"."</span><span class="tag">&gt;</span>不要回答！<span class="tk-tag">&lt;/p&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"."</span><span class="tag">&gt;</span>不要回答！<span class="tk-tag">&lt;/p&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"."</span><span class="tag">&gt;</span>不要回答！<span class="tk-tag">&lt;/p&gt;</span>
+<span class="tk-tag">&lt;/div&gt;</span></pre>
+      </div>
+      <p class="proto-desc">第二次渲染 — 只传入 1 项，整个列表重新渲染：</p>
+      <div class="proto-code">
+        <pre>DataSemantic.render({ answer: [<span class="tk-str">"不要回答啊！"</span>] });</pre>
+      </div>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"answer"</span><span class="tag">&gt;</span>
+  <span class="tk-tag">&lt;p</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"."</span><span class="tag">&gt;</span>不要回答啊！<span class="tk-tag">&lt;/p&gt;</span>
+<span class="tk-tag">&lt;/div&gt;</span></pre>
+      </div>
+    </div>
+
+    <!-- ===== 1、内容绑定 ===== -->
+    <div class="proto-block">
+      <div class="proto-label">1 · 内容绑定</div>
+      <p class="proto-desc">最基础的声明能力，将解析出的值渲染到元素的 <code class="mono">textContent</code>。</p>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;h1</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tk-tag">&gt;&lt;/h1&gt;</span></pre>
+      </div>
+      <div class="proto-wrap">
+        <table class="proto">
+          <thead>
+            <tr><th>解析值</th><th>渲染行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="attr-name">有效值</td><td class="dom-prop">设置 textContent（执行 toString）</td></tr>
+            <tr><td class="attr-name">undefined</td><td class="dom-prop">清空元素内容。开发模式下发出警告。</td></tr>
+            <tr><td class="attr-name">null</td><td class="dom-prop">清空元素内容。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 2、属性绑定 ===== -->
+    <div class="proto-block">
+      <div class="proto-label">2 · 属性绑定</div>
+      <p class="proto-desc">每个 <code class="mono">data-semantic-{attr}</code> 都会绑定到对应的 HTML 属性。</p>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;img</span> <span class="tk-attr">data-semantic-src</span>=<span class="tk-str">"user.avatar"</span> <span class="tk-attr">data-semantic-alt</span>=<span class="tk-str">"user.name"</span><span class="tag">&gt;</span>
+<span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic-data-role</span>=<span class="tk-str">"user.role"</span><span class="tag">&gt;&lt;/span&gt;</span></pre>
+      </div>
+
+      <div class="proto-label" style="margin-top:18px;">属性白名单</div>
+      <p class="proto-desc">翻译阶段，仅允许翻译以下白名单属性：</p>
       <div class="proto-wrap">
         <table class="proto">
           <thead>
             <tr><th>属性</th><th>绑定 DOM</th><th>用途</th><th>示例</th></tr>
           </thead>
           <tbody>
-            <tr><td class="attr-name">data-semantic</td><td class="dom-prop">textContent</td><td>基础文本内容</td><td class="ex">&lt;p data-semantic="user.name"&gt;</td></tr>
-            <tr><td class="attr-name">data-semantic-display</td><td class="dom-prop">style.display</td><td>显示 / 隐藏控制</td><td class="ex">&lt;h1 data-semantic-display="user.isVip"&gt;</td></tr>
             <tr><td class="attr-name">data-semantic-placeholder</td><td class="dom-prop">placeholder</td><td>输入框占位符</td><td class="ex">&lt;input data-semantic-placeholder="…"&gt;</td></tr>
             <tr><td class="attr-name">data-semantic-value</td><td class="dom-prop">value</td><td>表单初始值（单向）</td><td class="ex">&lt;input data-semantic-value="…"&gt;</td></tr>
             <tr><td class="attr-name">data-semantic-title</td><td class="dom-prop">title</td><td>鼠标悬停提示</td><td class="ex">&lt;button data-semantic-title="…"&gt;</td></tr>
@@ -219,67 +351,86 @@
         </table>
       </div>
 
-      <div class="spec-notes">
-        <div class="spec-note"><span class="tag">WHITELIST</span> 仅白名单内的 12 种 <code class="mono">data-semantic-*</code> 属性会被 runtime 处理，其余自定义 data 属性一律忽略。</div>
-        <div class="spec-note"><span class="tag">SECURITY</span> 事件处理器（<code class="mono">onclick</code> 等）、<code class="mono">style</code>、全局标识符、<code class="mono">iframe src</code> 等内联脚本类目标均不在白名单内，任意 <code class="mono">data-semantic-style</code> / <code class="mono">data-semantic-onclick</code> 均被忽略。</div>
+      <div class="proto-label" style="margin-top:18px;">数据解析</div>
+      <div class="proto-wrap">
+        <table class="proto">
+          <thead>
+            <tr><th>解析值</th><th>渲染行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="attr-name">undefined</td><td class="dom-prop">移除该属性。开发模式下发出警告。</td></tr>
+            <tr><td class="attr-name">null</td><td class="dom-prop">移除该属性。</td></tr>
+            <tr><td class="attr-name">有效值</td><td class="dom-prop">设置属性值（toString）。白名单外属性不做处理。</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</section>
 
-<section id="binding">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">03 · 四种绑定方式</div>
-      <h2>正交组合</h2>
-      <p>内容、属性、可见性、列表容器 —— 四类声明相互独立，可以在同一节点上自由叠加。</p>
-    </div>
-    <div class="grid-2" style="margin-bottom:18px;">
-      <div class="card">
-        <div class="card-head"><h3>内容绑定</h3><span class="card-op">textContent</span></div>
-        <pre class="code"><span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;&lt;/h1&gt;</span></pre>
-        <table>
-          <tr><td>有效值</td><td>设置 textContent（执行 toString）</td></tr>
-          <tr><td>undefined</td><td>清空内容，开发模式下警告</td></tr>
-          <tr><td>null</td><td>清空内容，不警告</td></tr>
+    <!-- ===== 3、可见性绑定 ===== -->
+    <div class="proto-block">
+      <div class="proto-label">3 · 可见性绑定</div>
+      <p class="proto-desc"><code class="mono">data-semantic-display</code> 是协议中唯一的样式相关绑定，用于控制 <code class="mono">style.display</code>。</p>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-display</span>=<span class="tk-str">"showLogin"</span><span class="tag">&gt;&lt;/div&gt;</span></pre>
+      </div>
+      <div class="proto-wrap">
+        <table class="proto">
+          <thead>
+            <tr><th>解析值</th><th>style.display 结果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="attr-name">布尔值 true</td><td class="dom-prop">''（显示）</td></tr>
+            <tr><td class="attr-name">布尔值 false</td><td class="dom-prop">'none'（不显示）</td></tr>
+            <tr><td class="attr-name">逻辑假值（"" / 0 / null / undefined / "false"）</td><td class="dom-prop">'none'</td></tr>
+            <tr><td class="attr-name">逻辑真值字符串（以上 5 种之外的）</td><td class="dom-prop">''（显示）</td></tr>
+          </tbody>
         </table>
       </div>
-      <div class="card">
-        <div class="card-head"><h3>属性绑定</h3><span class="card-op">setAttribute</span></div>
-        <pre class="code"><span class="tag">&lt;img</span> <span class="attr-name">data-semantic-src</span>=<span class="attr-val">"user.avatar"</span><span class="tag">&gt;</span></pre>
-        <table>
-          <tr><td>标准属性</td><td>placeholder / title / alt / value / href / src / aria-label / aria-description / content</td></tr>
-          <tr><td>自定义属性</td><td>data-*</td></tr>
-          <tr><td>undefined / null</td><td>移除该属性</td></tr>
-          <tr><td>有效值</td><td>设置属性值（toString），白名单外属性不做处理</td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>可见性绑定</h3><span class="card-op">style.display</span></div>
-        <pre class="code"><span class="tag">&lt;div</span> <span class="attr-name">data-semantic-display</span>=<span class="attr-val">"showLogin"</span><span class="tag">&gt;&lt;/div&gt;</span></pre>
-        <table>
-          <tr><td>true / 真值</td><td>display = ''（显示）</td></tr>
-          <tr><td>false / 假值 / "false"</td><td>display = 'none'</td></tr>
-          <tr><td>唯一样式声明</td><td>协议中仅此一处涉及样式</td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>列表容器</h3><span class="card-op">实例化innerHTML</span></div>
-        <pre class="code"><span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>…<span class="tag">&lt;/div&gt;</span></pre>
-        <table>
-          <tr><td>innerHTML</td><td>作为列表项模板，按数组长度克隆</td></tr>
-          <tr><td>空数组</td><td>清空子节点，不报错</td></tr>
-          <tr><td>非数组</td><td>违反协议，check 报错</td></tr>
-        </table>
+      <div class="spec-notes">
+        <div class="spec-note"><span class="tag">FALSE</span> 字符串形式的 <code class="mono">"false"</code> 归入逻辑假值，与布尔 <code class="mono">false</code> 效果一致。</div>
+        <div class="spec-note"><span class="tag">NO CSS</span> <code class="mono">element.style.display = ''</code> 的语义是移除内联 display 声明，不影响 class 层叠规则。</div>
       </div>
     </div>
+
+    <!-- ===== 4、列表容器 ===== -->
+    <div class="proto-block">
+      <div class="proto-label">4 · 列表容器</div>
+      <p class="proto-desc"><code class="mono">data-semantic-list</code> 用于声明列表容器，<code class="mono">{key}</code> 对应解析为数据中的一个数组。容器元素本身不会被克隆，其 <code class="mono">innerHTML</code> 即为列表项模板。</p>
+      <div class="proto-code">
+        <pre><span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">"page.chapters"</span><span class="tag">&gt;</span>
+  <span class="tk-tag">&lt;h2</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">".name"</span><span class="tag">&gt;&lt;/h2&gt;</span>
+  <span class="tk-tag">&lt;div</span> <span class="tk-attr">data-semantic-list</span>=<span class="tk-str">".items"</span><span class="tag">&gt;</span>
+    <span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">".title"</span><span class="tag">&gt;&lt;/span&gt;</span>
+    <span class="tk-tag">&lt;span</span> <span class="tk-attr">data-semantic</span>=<span class="tk-str">"page.title"</span><span class="tag">&gt;&lt;/span&gt;</span>  <span class="tk-com">&lt;!-- 绝对键，跳出上下文 --&gt;</span>
+  <span class="tk-tag">&lt;/div&gt;</span>
+<span class="tk-tag">&lt;/div&gt;</span></pre>
+      </div>
+      <div class="proto-wrap">
+        <table class="proto">
+          <thead>
+            <tr><th>数据值</th><th>渲染行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="attr-name">数组</td><td class="dom-prop">渲染模板的 i 个克隆实例</td></tr>
+            <tr><td class="attr-name">空数组 []</td><td class="dom-prop">清空容器子节点，不报错</td></tr>
+            <tr><td class="attr-name">undefined（键缺失）</td><td class="dom-prop">保持原始模板 DOM 不变，发出警告</td></tr>
+            <tr><td class="attr-name">null</td><td class="dom-prop">清空容器子节点，发出警告</td></tr>
+            <tr><td class="attr-name">非数组（字符串、对象等）</td><td class="dom-prop">违反协议 — check 报错，运行时发出警告并跳过渲染</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spec-notes">
+        <div class="spec-note"><span class="tag">CONTEXT</span> 每个克隆出的列表项都会建立新的语义上下文：相对键相对于 <code class="mono">{listKey}[i]</code> 解析，嵌套列表创建嵌套上下文，绝对键可绕过上下文。</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <section id="addressing">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">04 · Key 寻址与命名</div>
+      <div class="eyebrow">03 · Key 寻址与命名</div>
       <h2>绝对寻址 vs 相对寻址</h2>
       <p>相对寻址只能由 <code>data-semantic-list</code> 提供上下文，杜绝深层上下文栈带来的语义歧义。</p>
     </div>
@@ -324,38 +475,22 @@
 <section id="fault-tolerance">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">05 · 容错与翻译模式</div>
-      <h2>容错与翻译模式</h2>
-      <p>协议规定翻译过程是增量方式，可多次翻译、流式翻译，这意味着允许只传入部分数据，这涉及了容错规则支持。</p>
+      <div class="eyebrow">04 · 容错规则</div>
+      <h2>容错规则</h2>
+      <p>协议支持增量翻译、流式翻译，允许只传入部分数据。每一级寻址默认自带 <code class="mono">?.</code> 效果：链路中任意环节为 undefined / null 时不报错，保持现状；类型不匹配时仍会正常报错。</p>
     </div>
 
-    <div class="fault-block">
-      <div class="fault-sub">容错规则</div>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">每一级寻址默认自带 <code class="mono">?.</code> 效果：链路中任意环节为 undefined / null 时不报错，保持现状；类型不匹配时仍会正常报错。</p>
-      <div class="stream-flow">
-        <div class="stream-card">
-          <h5>第一次传入</h5>
-          <pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"title"</span><span class="punc">:</span> <span class="str">"…"</span> <span class="punc">}</span> <span class="punc">}</span></pre>
-          <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">page.chapters 寻址不到，保持原状，不报错</p>
-        </div>
-        <div class="arrow-flow">→</div>
-        <div class="stream-card">
-          <h5>第二次传入</h5>
-          <pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"chapters"</span><span class="punc">:</span> <span class="punc">[…]</span> <span class="punc">}</span> <span class="punc">}</span></pre>
-          <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">此次命中 chapters，触发列表翻译</p>
-        </div>
+    <div class="stream-flow">
+      <div class="stream-card">
+        <h5>第一次传入</h5>
+        <pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"title"</span><span class="punc">:</span> <span class="str">"…"</span> <span class="punc">}</span> <span class="punc">}</span></pre>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">page.chapters 寻址不到，保持原状，不报错</p>
       </div>
-    </div>
-
-    <div class="fault-block">
-      <div class="fault-sub">翻译模式</div>
-      <div class="rule-good-bad">
-        <div class="rb good"><span class="tag-mark">叶子节点</span>
-          <div class="line">增量翻译：只更新本次命中的部分，未命中保持不变</div>
-        </div>
-        <div class="rb good" style="border-color:var(--val);"><span class="tag-mark" style="color:var(--val);">列表容器</span>
-          <div class="line">全量翻译：数组长度变化时整个列表重新渲染</div>
-        </div>
+      <div class="arrow-flow">→</div>
+      <div class="stream-card">
+        <h5>第二次传入</h5>
+        <pre class="code"><span class="punc">{</span> <span class="attr-name">"page"</span><span class="punc">:</span> <span class="punc">{</span> <span class="attr-name">"chapters"</span><span class="punc">:</span> <span class="punc">[…]</span> <span class="punc">}</span> <span class="punc">}</span></pre>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">此次命中 chapters，触发列表翻译</p>
       </div>
     </div>
   </div>
@@ -364,7 +499,7 @@
 <section id="framework">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">06 · 框架层要求</div>
+      <div class="eyebrow">05 · 框架层要求</div>
       <h2>开放语义网络</h2>
       <p>data-semantic 不只是渲染工具，也是一份对三方开放的语义声明 —— 框架实现必须保证以下两点。</p>
     </div>
@@ -394,7 +529,7 @@
 <section id="runtime">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">07 · 运行时与编译器要求</div>
+      <div class="eyebrow">06 · 运行时与编译器要求</div>
       <h2>安全边界是协议的一部分</h2>
       <p>数据必须是纯JSON；以下模式一律视为语义污染，check 阶段明确拒绝。</p>
     </div>
@@ -412,7 +547,7 @@
 <section id="conformance">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">08 · 一致性测试</div>
+      <div class="eyebrow">07 · 一致性测试</div>
       <h2>Runtime 与 Compiler，输出必须一致</h2>
       <p>每个测试用例是一个独立目录，Runtime runner 与 Compiler runner 各自执行，并与 expected.html 比对。</p>
     </div>
@@ -440,7 +575,7 @@
 
 <footer>
   <div class="wrap footer-inner">
-    <div class="logo"><span class="dot"></span>data-semantic</div>
+    <div class="logo"><span class="dot"></span>data-semantic · HTML 原生的语义插座协议</div>
     <div class="fmeta">协议规范 v1.0 · 遵循开放语义网络声明</div>
   </div>
 </footer>
@@ -458,87 +593,16 @@
     });
   });
 
-  var runBtn = document.getElementById('runBtn');
-  var resetBtn = document.getElementById('resetBtn');
-  var outTitle = document.getElementById('outTitle');
-  var outChapters = document.getElementById('outChapters');
-  var emptyHint = document.getElementById('emptyHint');
-  var resultCode = document.getElementById('resultCode');
-  var resultHint = document.getElementById('resultHint');
-
-  var chapters = [
-    {name:'基本概念', url:'https://x.com'},
-    {name:'协议原文', url:'https://y.com'}
-  ];
-
-  var emptyResultHTML = resultCode.innerHTML;
-  var filledResultHTML =
-'<span class="tag">&lt;h1</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">"page.title"</span><span class="tag">&gt;</span><span class="fillval">Data-Semantic 协议规范 v1.0</span><span class="tag">&lt;/h1&gt;</span>\n' +
-'<span class="tag">&lt;div</span> <span class="attr-name">data-semantic-list</span>=<span class="attr-val">"page.chapters"</span><span class="tag">&gt;</span>\n' +
-'  <span class="tag">&lt;div&gt;</span>\n' +
-'    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">基本概念</span><span class="tag">&lt;/p&gt;</span>\n' +
-'    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://x.com</span><span class="tag">&lt;/a&gt;</span>\n' +
-'  <span class="tag">&lt;/div&gt;</span>\n' +
-'  <span class="tag">&lt;div&gt;</span>\n' +
-'    <span class="tag">&lt;p</span> <span class="attr-name">data-semantic</span>=<span class="attr-val">".name"</span><span class="tag">&gt;</span><span class="fillval">协议原文</span><span class="tag">&lt;/p&gt;</span>\n' +
-'    <span class="tag">&lt;a</span> <span class="attr-name">data-semantic-href</span>=<span class="attr-val">".url"</span><span class="tag">&gt;</span><span class="fillval">https://y.com</span><span class="tag">&lt;/a&gt;</span>\n' +
-'  <span class="tag">&lt;/div&gt;</span>\n' +
-'<span class="tag">&lt;/div&gt;</span>';
-
-  function typeInto(el, text, cb){
-    el.textContent = '';
-    var i = 0;
-    var timer = setInterval(function(){
-      el.textContent += text[i];
-      i++;
-      if(i >= text.length){ clearInterval(timer); if(cb) cb(); }
-    }, 22);
-  }
-
-  function reset(){
-    outTitle.classList.add('blank');
-    outTitle.textContent = '';
-    outChapters.innerHTML = '';
-    emptyHint.style.display = 'block';
-    resultCode.innerHTML = emptyResultHTML;
-    resultHint.style.display = 'block';
-  }
-
-  function run(){
-    // switch to result (翻译后源码) tab first
-    tabs.forEach(function(x){x.classList.remove('active');});
-    panes.forEach(function(x){x.classList.remove('active');});
-    document.querySelector('.demo-tab[data-pane="result"]').classList.add('active');
-    document.querySelector('.pane[data-pane="result"]').classList.add('active');
-
-    resultCode.style.opacity = 0;
-    setTimeout(function(){
-      resultCode.innerHTML = filledResultHTML;
-      resultCode.style.transition = 'opacity .4s';
-      resultCode.style.opacity = 1;
-    }, 150);
-
-    // build the clean rendered view in the background
-    emptyHint.style.display = 'none';
-    outTitle.classList.remove('blank');
-    outChapters.innerHTML = '';
-
-    typeInto(outTitle, 'Data-Semantic 协议规范 v1.0', function(){
-      chapters.forEach(function(ch, idx){
-        setTimeout(function(){
-          var row = document.createElement('div');
-          row.className = 'chapter-row';
-          row.innerHTML =
-            '<span class="chapter-name">'+ch.name+'</span>' +
-            '<span class="chapter-url">'+ch.url+'</span>';
-          outChapters.appendChild(row);
-        }, idx * 260);
-      });
+  var apiTabs = document.querySelectorAll('.api-tab');
+  var apiPanels = document.querySelectorAll('.api-panel');
+  apiTabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      apiTabs.forEach(function(x){x.classList.remove('active');});
+      apiPanels.forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      document.querySelector('.api-panel[data-sub="'+t.dataset.sub+'"]').classList.add('active');
     });
-  }
-
-  runBtn.addEventListener('click', run);
-  resetBtn.addEventListener('click', reset);
+  });
 })();
 </script>
 
