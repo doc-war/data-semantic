@@ -1,6 +1,6 @@
 {
   "name": "data-semantic-compiler",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Compiler, inspector, and validator for data-semantic templates.",
   "type": "module",
   "main": "./src/core.js",

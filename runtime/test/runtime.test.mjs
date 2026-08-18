@@ -126,10 +126,10 @@ await test('data-semantic-display：布尔控制显示/隐藏', () => {
   assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
 });
 
-await test('data-semantic-display：字符串值原样透传', () => {
+await test('data-semantic-display：真值字符串显示元素', () => {
   const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
   rt.render({ user: { isVip: 'flex' } });
-  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'flex');
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, '');
 });
 
 await test('data-semantic-display：undefined/null 隐藏元素', () => {
@@ -138,6 +138,29 @@ await test('data-semantic-display：undefined/null 隐藏元素', () => {
   assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, '');
   rt.render({ user: { isVip: undefined } });
   assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
+});
+
+await test('data-semantic-display：0 和 "false" 隐藏元素', () => {
+  const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: false });
+  rt.render({ user: { isVip: 0 } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
+  rt.render({ user: { isVip: 'false' } });
+  assert.strictEqual(d.querySelector('[data-semantic-display]').style.display, 'none');
+});
+
+await test('render() 拒绝非 Plain Object（数组/Date 等）', () => {
+  const warnings = [];
+  const origWarn = console.warn;
+  console.warn = (...args) => warnings.push(args.join(' '));
+  try {
+    const rt = new DataSemanticRuntime({ root: d.body, warnOnMissing: true });
+    rt.render([1, 2, 3]);
+    rt.render(new Date());
+    rt.render('string');
+  } finally {
+    console.warn = origWarn;
+  }
+  assert.ok(warnings.some((w) => w.includes('纯 JSON 对象')));
 });
 
 await test('data-semantic-display 不属白名单校验且不产生 display 属性', () => {

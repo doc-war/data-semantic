@@ -1,12 +1,12 @@
 # data-semantic
 
-data-semantic是HTML原生的语义插座协议，为 AI 时代设计。
-
- —— 纯 HTML 声明式绑定、零 JS 侵入。其技术原理是基于HTML原生 `data-*`规范，预声明语义化的数据插槽，从而实现UI 结构与页面数据的获取/处理逻辑彻底解耦。
+data-semantic首先是一个html语义插座协议，其次才是runtime和comptime实现。
+—— AI原生设计，语义优先
+—— 纯 HTML 声明式绑定、零 JS 侵入。
 
 ## 极简开发体验
 
-data-semantic的核心技术原理，是基于html原生标准的`data-*`机制，来实现数据绑定语义声明，再通过运行时进行数据注入、触发渲染。
+data-semantic的核心技术原理，是基于html原生`data-*`机制，预声明语义化的数据槽位，通过runtime或compiler翻译，从而实现UI结构与页面数据的获取/处理逻辑彻底解耦
 
 #### 1、声明数据
 

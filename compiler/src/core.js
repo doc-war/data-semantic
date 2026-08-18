@@ -151,6 +151,12 @@ export function check(template, data = null) {
     if (classifyKey(node.key) === 'numbered') {
       warnings.push({ type: 'non-recommended', message: `使用了序号寻址 "${node.key}"，建议优先使用 . 前缀相对寻址`, selector: node.selector, key: node.key });
     }
+    if (node.tag === 'iframe' && node.attr === 'src' && data) {
+      const value = getValueByPath(data, node.resolved);
+      if (typeof value === 'string' && !/^(https?:|\/\/)/.test(value)) {
+        errors.push({ type: 'violation', message: `iframe src "${value}" 使用了禁止的协议，仅允许 https:、http: 或 //`, selector: node.selector, key: node.resolved });
+      }
+    }
     if (data) {
       const value = getValueByPath(data, node.resolved);
       if (value === undefined) {
@@ -217,12 +223,11 @@ export function compile(template, data, options = {}) {
     if (displayKey) {
       const resolved = resolveRawKey(displayKey, context);
       const value = getValueByPath(data, resolved);
-      if (value === undefined || value === null || value === false || value === '') {
+      if (value === false || value === 0 || value === '' ||
+          value === null || value === undefined || value === 'false') {
         displayStyle = ' display: none;';
-      } else if (value === true) {
-        displayStyle = '';
       } else {
-        displayStyle = ` display: ${String(value)};`;
+        displayStyle = '';
       }
     }
 

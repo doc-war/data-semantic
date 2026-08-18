@@ -48,8 +48,9 @@ export class DataSemanticRuntime {
   }
 
   render(data) {
-    if (data === null || typeof data !== 'object') {
-      this.warn('render 需要传入对象');
+    if (data === null || typeof data !== 'object' || Array.isArray(data) ||
+        Object.getPrototypeOf(data) !== Object.prototype) {
+      this.warn('render 需要传入纯 JSON 对象（Plain Object）');
       return;
     }
 
@@ -398,12 +399,11 @@ export class DataSemanticRuntime {
 
     // display 绑定：独立处理，不走提前返回
     for (const el of entry.displayEls) {
-      if (value === undefined || value === null || value === false || value === '') {
+      if (value === false || value === 0 || value === '' ||
+          value === null || value === undefined || value === 'false') {
         el.style.display = 'none';
-      } else if (value === true) {
-        el.style.display = '';
       } else {
-        el.style.display = String(value);
+        el.style.display = '';
       }
     }
 
