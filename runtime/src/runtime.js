@@ -40,7 +40,17 @@ export class DataSemanticRuntime {
       (typeof process === 'undefined' || process.env?.NODE_ENV !== 'production');
     this.isMounted = false;
     this.observer = null;
-    this._rendering = false;        // flag to suppress observer during list render
+    this._rendering = false;
+    // 防护机制说明：
+    // renderOneList() 会修改 DOM（el.innerHTML = '' + el.appendChild），
+    // 这会触发 MutationObserver 回调 → processMutations()。
+    // _rendering 标记用于在列表渲染期间抑制 processMutations 的重入，
+    // 防止 processMutations → buildIndex → renderOneList 形成无限循环。
+    //
+    // ⚠️ 关键：在 _rendering 设回 false 之前，必须调用
+    // observer.takeRecords() 消费掉渲染期间积累的 DOM 变更记录，
+    // 否则这些记录会在 _rendering = false 后触发 processMutations，
+    // 再次调用 buildIndex + renderOneList，造成死循环。
 
     this.injectSemanticMeta();
   }
@@ -75,12 +85,20 @@ export class DataSemanticRuntime {
     this.applyKeys(keys);
 
     // Re-render all lists (full rebuild per list)
+    // 设置 _rendering 抑制 observer 回调中的 processMutations 重入。
+    // renderOneList() 内部的 DOM 操作（清空 + 追加节点）会触发
+    // MutationObserver 记录，但这些记录必须在 _rendering=false 之前丢弃，
+    // 否则 processMutations → buildIndex → renderOneList 会形成死循环。
+    // 见 constructor 中 _rendering 字段的完整说明。
     this._rendering = true;
     try {
       for (const [, listEntry] of this.lists) {
         this.renderOneList(listEntry);
       }
     } finally {
+      // ⚠️ 必须在 _rendering=false 之前消费掉渲染期间的 DOM 变更记录，
+      // 防止 processMutations 在下一轮微任务中被触发导致无限循环。
+      if (this.observer) this.observer.takeRecords();
       this._rendering = false;
     }
 
@@ -109,6 +127,12 @@ export class DataSemanticRuntime {
     this.buildIndex();
     this.isMounted = true;
 
+    // 创建 MutationObserver 监听 DOM 变更（节点增删、属性变化）。
+    // 当外部代码动态插入包含 data-semantic 绑定的节点时，
+    // processMutations 会自动重建索引并渲染新节点。
+    // ⚠️ 注意：renderOneList() 的 DOM 操作也会触发 observer，
+    // 必须通过 _rendering 标记 + takeRecords() 抑制，防止死循环。
+    // 详见 constructor 中 _rendering 字段说明。
     const doc = this.root.nodeType === 9 ? this.root : this.root.ownerDocument;
     const observerCtor = doc?.defaultView?.MutationObserver;
     if (observerCtor) {
@@ -121,6 +145,8 @@ export class DataSemanticRuntime {
   }
 
   processMutations(mutations) {
+    // _rendering 守卫：渲染期间忽略所有 observer 回调，防止重入。
+    // render() 和本方法内部的列表重渲染都受此标记保护。
     if (!this.isMounted || this._rendering) return;
     const relevant = mutations.some((m) => {
       if (m.type === 'attributes') {
@@ -139,12 +165,15 @@ export class DataSemanticRuntime {
       this.buildIndex();
       this.applyExistingData();
       // Re-render lists after index rebuild
+      // 同样需要 _rendering 保护 + takeRecords 消费，
+      // 原因同 render() 中的列表重渲染逻辑。
       this._rendering = true;
       try {
         for (const [, listEntry] of this.lists) {
           this.renderOneList(listEntry);
         }
       } finally {
+        if (this.observer) this.observer.takeRecords();
         this._rendering = false;
       }
     }
